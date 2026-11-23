@@ -1,44 +1,40 @@
-# Minhas Finanças
+# Minhas Finanças — dashboard financeiro pessoal
 
-Dashboard financeiro pessoal. Patrimônio, fluxo, limites, metas e relatórios. Os números ficam neste aparelho.
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
 
-## Por quê
-
-| | |
-| --- | --- |
-| Sem conta | O livro fica no navegador |
-| Mês | Entradas, saídas e o que ainda vai cair |
-| Limites e metas | Teto por classe e o quanto já juntou |
+Livro-caixa neste aparelho: patrimônio, fluxo, limites, metas e relatórios. Os lançamentos ficam em `localStorage`. Os números sobem e descem quando o mês muda.
 
 ## Stack
 
-- React 19, TanStack Start, Vite, TypeScript
+- React 19, TanStack Start, Vite e TypeScript
 - Tailwind CSS 4
-- Zustand e localStorage
-- Recharts
-- Phosphor Icons
+- Zustand, com o livro em `localStorage`
+- Recharts e Phosphor Icons
 
 ## Estrutura
 
-```text
-src/components/soldo   interface
-src/lib/finance        livro, cálculos e exemplo
-src/routes             página
-public                 ícone
+```
+src/components/soldo/
+src/lib/finance/
+src/routes/
+src/styles.css
+public/favicon.svg
+package.json
 ```
 
 ## Como rodar
 
 ```bash
+git clone https://github.com/gabrielteramae/minhas-financas.git
+cd minhas-financas
 npm install
 npm run dev
 ```
 
 Abre em `http://localhost:8080`.
 
-```bash
-npm run typecheck
-npm run build
-```
+---
 
 © 2026 Gabriel Teramae Chan
