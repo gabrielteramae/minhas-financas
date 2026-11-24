@@ -55,16 +55,15 @@ function CaixaMark({ className }: { className?: string }) {
       </defs>
       <circle cx="70" cy="70" r="62" fill="url(#mf-rim)" />
       <circle cx="70" cy="70" r="50" fill="url(#mf-face)" />
-      <circle cx="70" cy="70" r="40" fill="none" stroke="#30d158" strokeWidth="4" />
-      <circle cx="70" cy="70" r="33" fill="none" stroke="#fff6c2" strokeWidth="2" />
+      <circle cx="70" cy="70" r="40" fill="none" stroke="#fff6c2" strokeWidth="3" />
       <path
         d="M84 52c-8-8-28-6-28 8 0 16 32 8 32 24 0 12-18 16-30 8"
         fill="none"
-        stroke="#145c32"
+        stroke="#8a5a00"
         strokeWidth="7"
         strokeLinecap="round"
       />
-      <path d="M70 42v56" stroke="#145c32" strokeWidth="7" strokeLinecap="round" />
+      <path d="M70 42v56" stroke="#8a5a00" strokeWidth="7" strokeLinecap="round" />
     </svg>
   );
 }
