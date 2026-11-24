@@ -196,6 +196,7 @@ function Shell() {
         <div className="min-h-dvh bg-deep md:py-4">
           <div className="relative mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-foam md:h-[min(920px,100dvh)] md:rounded-[2rem]">
             <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[calc(9.75rem+env(safe-area-inset-bottom))]">
+              <div key={view} className="screen-in">
               {view !== "home" && TITLES[view] ? (
                 <div className="mb-4">
                   <div className="flex items-center gap-2">
@@ -222,11 +223,12 @@ function Shell() {
               {view === "classes" ? <ClassesView /> : null}
               {view === "settings" ? <SettingsView /> : null}
               {view === "more" ? <MoreView /> : null}
+              </div>
             </div>
             <button
               type="button"
               aria-label="Novo lançamento"
-              className="absolute right-4 z-30 grid size-14 place-items-center rounded-full bg-leaf text-paper active:scale-[0.96]"
+              className="fab-in absolute right-4 z-30 grid size-14 place-items-center rounded-full bg-leaf text-paper transition-transform active:scale-[0.96]"
               style={{ bottom: "calc(5.85rem + env(safe-area-inset-bottom))" }}
               onClick={() => ui.openTx()}
             >
@@ -245,8 +247,8 @@ function Shell() {
                       className="grid place-items-center px-1"
                       onClick={() => setView(item.id)}
                     >
-                      <span className={cn("flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl", active && "bg-mist")}>
-                        <item.icon className={cn("size-5", active ? "text-leaf" : "text-moss")} weight={weight} />
+                      <span className={cn("flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl transition-colors duration-200", active && "bg-mist")}>
+                        <item.icon className={cn("size-5 transition-transform duration-200", active ? "scale-110 text-leaf" : "text-moss")} weight={weight} />
                         <span className={cn("text-[10px] font-medium leading-none", active ? "text-leaf" : "text-moss")}>{item.label}</span>
                       </span>
                     </button>

@@ -127,9 +127,11 @@ function Meter({ realized, scheduled, limit }: { realized: number; scheduled: nu
   const sw = Math.min(100 - rw, (scheduled / base) * 100);
   return (
     <div className="h-2 overflow-hidden rounded-full bg-bg" role="progressbar" aria-valuemin={0} aria-valuemax={limit || realized} aria-valuenow={Math.round(realized)}>
-      <div className="flex h-full">
-        <div className={cn("h-full transition-[width] duration-500 ease-out", over ? "bg-clay" : "bg-sage")} style={{ width: `${rw}%` }} />
-        <div className="h-full bg-gold/45 transition-[width] duration-500 ease-out" style={{ width: `${sw}%` }} />
+      <div className="meter-fill h-full" style={{ width: `${Math.min(100, rw + sw)}%` }}>
+        <div className="flex h-full">
+          <div className={cn("h-full", over ? "bg-clay" : "bg-sage")} style={{ width: rw + sw > 0 ? `${(rw / (rw + sw)) * 100}%` : "0%" }} />
+          <div className="h-full bg-gold/45" style={{ width: rw + sw > 0 ? `${(sw / (rw + sw)) * 100}%` : "0%" }} />
+        </div>
       </div>
     </div>
   );
@@ -239,7 +241,7 @@ export function Overview() {
             Extrato
           </button>
         </div>
-        <div className="flex flex-col">
+        <div className="rows flex flex-col">
           {recent.map((tx) => {
             const cat = ledger.categories.find((c) => c.id === tx.categoryId);
             return (
@@ -448,7 +450,7 @@ export function FlowView() {
               <h2 className="mb-2 text-xs font-medium tracking-widest text-muted uppercase">
                 {group.key === "maiores" ? "Maiores valores" : dayHeading(group.key, todayISO)}
               </h2>
-              <Card className="divide-y divide-line p-0">
+              <Card className="rows divide-y divide-line p-0">
                 {group.items.map((tx) => {
                   const open = openId === tx.id;
                   const cat = categories.find((c) => c.id === tx.categoryId);
@@ -641,7 +643,7 @@ export function GoalsView() {
           return (
             <Card key={goal.id}>
               <div className="flex items-center gap-4">
-                <div className="grid size-16 place-items-center rounded-full" style={{ background: `conic-gradient(${toneStroke(goal.tone)} ${Math.min(100, pct)}%, var(--color-line) 0)` }}>
+                <div className="ring-pop grid size-16 place-items-center rounded-full" style={{ background: `conic-gradient(${toneStroke(goal.tone)} ${Math.min(100, pct)}%, var(--color-line) 0)` }}>
                   <div className="grid size-12 place-items-center rounded-full bg-surface">
                     <Icon name={goal.icon} className="size-4" />
                   </div>

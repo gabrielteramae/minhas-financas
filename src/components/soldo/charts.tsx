@@ -44,8 +44,8 @@ export function FlowChart({
           <XAxis dataKey="label" tick={axis} axisLine={false} tickLine={false} interval="preserveStartEnd" />
           <YAxis hide />
           <Tooltip content={<Tip />} cursor={{ fill: "var(--color-raised)" }} />
-          <Bar dataKey="income" name="Entradas" fill="var(--color-sage)" radius={[4, 4, 0, 0]} maxBarSize={18} />
-          <Bar dataKey="expense" name="Saídas" fill="var(--color-clay)" radius={[4, 4, 0, 0]} maxBarSize={18} />
+          <Bar dataKey="income" name="Entradas" fill="var(--color-sage)" radius={[4, 4, 0, 0]} maxBarSize={18} animationDuration={650} />
+          <Bar dataKey="expense" name="Saídas" fill="var(--color-clay)" radius={[4, 4, 0, 0]} maxBarSize={18} animationDuration={650} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -70,6 +70,7 @@ export function WealthChart({ data }: { data: { label: string; value: number }[]
             fill="var(--color-leaf)"
             fillOpacity={0.08}
             strokeWidth={2}
+            animationDuration={800}
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -85,7 +86,7 @@ export function WeekChart({ data }: { data: { label: string; expense: number }[]
           <XAxis dataKey="label" tick={axis} axisLine={false} tickLine={false} />
           <YAxis hide />
           <Tooltip content={<Tip />} cursor={{ fill: "var(--color-raised)" }} />
-          <Bar dataKey="expense" name="Saídas" fill="var(--color-clay)" radius={[4, 4, 0, 0]} maxBarSize={28} />
+          <Bar dataKey="expense" name="Saídas" fill="var(--color-clay)" radius={[4, 4, 0, 0]} maxBarSize={28} animationDuration={650} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -99,7 +100,7 @@ export function SharePie({ data }: { data: { name: string; value: number; fill: 
     <div className="mx-auto h-48 w-full max-w-xs">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
-          <Pie data={data} dataKey="value" nameKey="name" innerRadius={52} outerRadius={74} paddingAngle={2} stroke="none">
+          <Pie data={data} dataKey="value" nameKey="name" innerRadius={52} outerRadius={74} paddingAngle={2} stroke="none" animationDuration={700}>
             {data.map((d) => (
               <Cell key={d.name} fill={d.fill} />
             ))}

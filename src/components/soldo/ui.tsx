@@ -161,9 +161,9 @@ export function Money({
   return (
     <span
       className={cn(
-        "inline-block tabular-nums transition-colors duration-300",
+        "inline-block origin-center tabular-nums transition-[color,transform] duration-300",
         display && "font-serif",
-        flash ? flashing : settled,
+        flash ? cn(flashing, "scale-[1.06]") : settled,
         className,
       )}
     >
