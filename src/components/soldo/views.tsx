@@ -153,13 +153,9 @@ export function Overview() {
       .filter((t) => t.date <= todayISO && t.type !== "transfer")
       .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
       .slice(0, 3);
-    const goal = ledger.goals[0];
-    const goalLine = goal
-      ? { name: goal.name, saved: goalSaved(goal), target: goal.target }
-      : null;
-    return { wealth, nowFlow, soon, recent, goalLine };
+    return { wealth, nowFlow, soon, recent };
   }, [ledger, period, todayISO]);
-  const { wealth, nowFlow, soon, recent, goalLine } = picture;
+  const { wealth, nowFlow, soon, recent } = picture;
 
   const hello = today.getHours() < 12 ? "Bom dia" : today.getHours() < 18 ? "Boa tarde" : "Boa noite";
   const mask = hidden ? "R$ ••••" : null;
@@ -234,52 +230,6 @@ export function Overview() {
         <Shortcut icon={Bank} label="Contas" compact onClick={() => setView("accounts")} />
         <Shortcut icon={Tag} label="Categorias" compact onClick={() => setView("classes")} />
         <Shortcut icon={Gear} label="Ajustes" compact onClick={() => setView("settings")} />
-      </div>
-
-      <div className="scroll-thin -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4">
-        <button
-          type="button"
-          className="flex min-h-40 w-[78%] shrink-0 snap-start flex-col justify-between rounded-3xl bg-leaf p-5 text-left text-paper active:scale-[0.99]"
-          onClick={() => setView("reports")}
-        >
-          <span className="text-sm text-paper/75">Neste mês</span>
-          <span>
-            <span className="block text-2xl font-semibold leading-tight tracking-tight">
-              {nowFlow.net >= 0 ? "Sobrou dinheiro." : "Saiu mais do que entrou."}
-            </span>
-            <span className="mt-2 block text-sm text-paper/80">{mask ?? brl(nowFlow.net)}</span>
-          </span>
-        </button>
-        {soon[0] ? (
-          <button
-            type="button"
-            className="flex min-h-40 w-[78%] shrink-0 snap-start flex-col justify-between rounded-3xl bg-ink p-5 text-left text-paper active:scale-[0.99]"
-            onClick={() => setView("flow")}
-          >
-            <span className="text-sm text-paper/60">Próximo</span>
-            <span>
-              <span className="block text-2xl font-semibold leading-tight tracking-tight">{soon[0].note || TX_LABEL[soon[0].type]}</span>
-              <span className="mt-2 block text-sm text-paper/70">
-                {shortDate(soon[0].date)} · {mask ?? brl(soon[0].amount, { cents: false })}
-              </span>
-            </span>
-          </button>
-        ) : null}
-        {goalLine ? (
-          <button
-            type="button"
-            className="flex min-h-40 w-[78%] shrink-0 snap-start flex-col justify-between rounded-3xl bg-[#f3e6c4] p-5 text-left text-ink active:scale-[0.99]"
-            onClick={() => setView("goals")}
-          >
-            <span className="text-sm text-ink/60">Meta</span>
-            <span>
-              <span className="block text-2xl font-semibold leading-tight tracking-tight">{goalLine.name}</span>
-              <span className="mt-2 block text-sm text-ink/70">
-                {mask ? "Valor oculto" : `${brl(goalLine.saved, { cents: false })} de ${brl(goalLine.target, { cents: false })}`}
-              </span>
-            </span>
-          </button>
-        ) : null}
       </div>
 
       <section>
