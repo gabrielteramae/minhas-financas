@@ -73,9 +73,9 @@ export function toneClass(_tone?: Tone) {
 export function toneStroke(tone: Tone) {
   switch (tone) {
     case "gold":
-      return "#e0a82a";
+      return "#5aa7f0";
     case "sage":
-      return "#146b4a";
+      return "#1c9a6a";
     case "clay":
       return "#c4382b";
     default:

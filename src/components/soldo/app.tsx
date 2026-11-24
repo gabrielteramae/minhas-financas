@@ -59,7 +59,7 @@ function CaixaMark({ className }: { className?: string }) {
 function SceneMonth({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 360 220" className={className} preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <rect width="360" height="220" fill="#146b4a" />
+      <rect width="360" height="220" fill="#1a6fd4" />
       <rect x="48" y="120" width="28" height="64" rx="8" fill="#f4f7f2" />
       <rect x="92" y="88" width="28" height="96" rx="8" fill="#c8e6d4" />
       <rect x="136" y="56" width="28" height="128" rx="8" fill="#f7f4ea" />
@@ -73,8 +73,8 @@ function SceneMonth({ className }: { className?: string }) {
 function SceneGoals({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 360 220" className={className} preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <rect width="360" height="220" fill="#146b4a" />
-      <circle cx="180" cy="118" r="72" fill="none" stroke="#0c3d2c" strokeWidth="16" />
+      <rect width="360" height="220" fill="#1a6fd4" />
+      <circle cx="180" cy="118" r="72" fill="none" stroke="#0d3b73" strokeWidth="16" />
       <circle cx="180" cy="118" r="72" fill="none" stroke="#f4f7f2" strokeWidth="16" strokeDasharray="300 160" strokeLinecap="round" transform="rotate(-90 180 118)" />
       <circle cx="180" cy="118" r="36" fill="#f2c14b" />
     </svg>

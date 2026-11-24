@@ -4,27 +4,27 @@
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
   --font-serif: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
 
-  --color-bg: #f3f6f1;
+  --color-bg: #eaf3fb;
   --color-surface: #ffffff;
-  --color-raised: #e4ece6;
-  --color-line: #d5e0d8;
-  --color-fg: #15241c;
-  --color-muted: #5e6f65;
-  --color-faint: #7d8f84;
-  --color-gold: #8fbfa4;
-  --color-sage: #146b4a;
+  --color-raised: #d7e8f8;
+  --color-line: #c5d9ee;
+  --color-fg: #10233d;
+  --color-muted: #5c738c;
+  --color-faint: #7d93a8;
+  --color-gold: #8fd4c4;
+  --color-sage: #1c9a6a;
   --color-clay: #c4382b;
-  --color-shade-1: #0c3d2c;
-  --color-shade-2: #146b4a;
-  --color-shade-3: #5e6f65;
-  --color-shade-4: #c5d5cb;
-  --color-leaf: #146b4a;
-  --color-deep: #0c3d2c;
-  --color-foam: #f3f6f1;
+  --color-shade-1: #0d3b73;
+  --color-shade-2: #1a6fd4;
+  --color-shade-3: #1c9a6a;
+  --color-shade-4: #b9d4ee;
+  --color-leaf: #1a6fd4;
+  --color-deep: #0d3b73;
+  --color-foam: #eaf3fb;
   --color-paper: #ffffff;
-  --color-ink: #15241c;
-  --color-moss: #5e6f65;
-  --color-mist: #e4ece6;
+  --color-ink: #10233d;
+  --color-moss: #5c738c;
+  --color-mist: #d7e8f8;
   --color-sale: #c4382b;
 }
 
