@@ -189,7 +189,7 @@ export function Overview() {
 
       {ledger.origin === "demo" && !ledger.hintHidden ? (
         <div className="flex items-center gap-3">
-          <p className="flex-1 text-sm text-moss">Números de exemplo, só neste aparelho.</p>
+          <p className="flex-1 text-sm text-moss">Números de exemplo. Só neste aparelho.</p>
           <button type="button" className="grid size-11 shrink-0 place-items-center text-moss" aria-label="Dispensar aviso" onClick={hideHint}>
             <X className="size-4" weight="bold" />
           </button>
@@ -276,7 +276,7 @@ export function Overview() {
       ) : null}
 
       <p className="text-center text-sm text-moss">
-        {mask ? "Valores ocultos" : <>Neste mês entrou {brl(nowFlow.income, { cents: false })} e saiu {brl(nowFlow.expense, { cents: false })}.</>}
+        {mask ? "Valores ocultos." : <>Neste mês entrou {brl(nowFlow.income, { cents: false })} e saiu {brl(nowFlow.expense, { cents: false })}.</>}
       </p>
     </div>
   );
@@ -405,7 +405,7 @@ export function FlowView() {
       </div>
       {flow.categoryId !== "all" ? (
         <button type="button" className="text-left text-sm text-leaf" onClick={() => setFlow({ categoryId: "all" })}>
-          {categories.find((c) => c.id === flow.categoryId)?.name ?? "Categoria"} · tirar filtro
+          {categories.find((c) => c.id === flow.categoryId)?.name ?? "Categoria"} · tirar filtro.
         </button>
       ) : null}
       {moreFilters ? (
@@ -461,7 +461,7 @@ export function FlowView() {
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center gap-2">
                             <span className="truncate text-sm">{tx.note || cat?.name || TX_LABEL[tx.type]}</span>
-                            {tx.date > todayISO ? <span className="shrink-0 text-xs text-muted">previsto</span> : null}
+                            {tx.date > todayISO ? <span className="shrink-0 text-xs text-muted">Previsto</span> : null}
                           </span>
                           <span className="block truncate text-xs text-muted">
                             {tx.type === "transfer" ? `${from} → ${to ?? ""}` : `${cat?.name ?? TX_LABEL[tx.type]} · ${from}`}
@@ -653,7 +653,7 @@ export function GoalsView() {
                   </p>
                   <p className={cn("text-xs", late ? "text-clay" : "text-muted")}>
                     {Math.round(pct)}%{goal.deadline ? ` · até ${shortDate(goal.deadline)}` : ""}
-                    {late ? " · prazo passou" : ""}
+                    {late ? " · o prazo passou" : ""}
                   </p>
                 </div>
               </div>
@@ -950,7 +950,7 @@ export function SettingsView() {
       <Card>
         <h2 className="font-serif text-xl">Neste aparelho</h2>
         <p className="mt-2 text-sm text-muted">
-          Minhas Finanças não envia seus números para lugar nenhum. Exportar é o jeito de guardar uma cópia ou levar para outro navegador.
+          Minhas Finanças não envia os seus números para nenhum lugar. Exporte para guardar uma cópia ou levar para outro navegador.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Button onClick={download}>Exportar</Button>
@@ -980,7 +980,7 @@ export function SettingsView() {
       </Card>
       <Card>
         <h2 className="font-serif text-xl">Recomeçar</h2>
-        <p className="mt-2 text-sm text-muted">Restaurar o exemplo substitui o livro atual. Apagar zera lançamentos, limites e metas.</p>
+        <p className="mt-2 text-sm text-muted">Restaurar o exemplo substitui o livro atual. Apagar zera os lançamentos, os limites e as metas.</p>
         <div className="mt-4 flex flex-wrap gap-2">
           {arm === "demo" ? (
             <Button

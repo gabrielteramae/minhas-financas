@@ -180,9 +180,9 @@ export function Delta({
   goodWhenUp: boolean;
 }) {
   if (pct === null || !Number.isFinite(pct)) {
-    return <span className="text-xs text-faint">sem comparação</span>;
+    return <span className="text-xs text-faint">Sem comparação.</span>;
   }
-  if (Math.abs(pct) < 0.05) return <span className="text-xs text-muted">estável vs anterior</span>;
+  if (Math.abs(pct) < 0.05) return <span className="text-xs text-muted">Estável em relação ao anterior.</span>;
   const up = pct > 0;
   const good = up ? goodWhenUp : !goodWhenUp;
   const abs = Math.abs(pct);

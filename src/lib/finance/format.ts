@@ -71,8 +71,7 @@ export function monthLabelFromKey(key: string) {
 export function shortMonth(key: string) {
   const [y, m] = key.split("-").map(Number);
   return new Intl.DateTimeFormat("pt-BR", { month: "short" })
-    .format(new Date(y || 1970, (m || 1) - 1, 1))
-    .replace(".", "");
+    .format(new Date(y || 1970, (m || 1) - 1, 1));
 }
 
 export function dayHeading(iso: string, todayISO: string) {
@@ -85,14 +84,12 @@ export function dayHeading(iso: string, todayISO: string) {
     day: "2-digit",
     month: "short",
   }).format(d);
-  return s.charAt(0).toUpperCase() + s.slice(1).replace(".", "");
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 export function shortDate(iso: string) {
   const d = parseISODate(iso);
-  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" })
-    .format(d)
-    .replace(".", "");
+  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(d);
 }
 
 export function parseMoney(raw: string, opts?: { allowZero?: boolean }) {

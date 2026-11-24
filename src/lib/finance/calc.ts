@@ -166,7 +166,7 @@ export function seriesFor(txs: Transaction[], bounds: Bounds | null, granularity
     const last = parseISODate(bounds.end);
     while (d <= last) {
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      const label = new Intl.DateTimeFormat("pt-BR", { month: "short" }).format(d).replace(".", "");
+      const label = new Intl.DateTimeFormat("pt-BR", { month: "short" }).format(d);
       ensure(key, label);
       d = new Date(d.getFullYear(), d.getMonth() + 1, 1);
     }
@@ -264,7 +264,7 @@ export function netWorthSeries(ledger: Ledger, today: Date, points = 6) {
     const map = balances(ledger.accounts, ledger.transactions, end);
     rows.push({
       key: isoOf(startD).slice(0, 7),
-      label: new Intl.DateTimeFormat("pt-BR", { month: "short" }).format(startD).replace(".", ""),
+      label: new Intl.DateTimeFormat("pt-BR", { month: "short" }).format(startD),
       value: wealthSplit(map).net,
     });
   }

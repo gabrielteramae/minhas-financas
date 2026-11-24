@@ -103,7 +103,7 @@ function Splash() {
           </div>
         </div>
         <p className="splash-title mt-8 text-4xl font-semibold tracking-tight">Minhas Finanças</p>
-        <p className="splash-sub mt-2 text-sm text-ink/60">Abrindo minha caixinha</p>
+        <p className="splash-sub mt-2 text-sm text-ink/60">Abrindo minha caixinha.</p>
         <span className="splash-bar" aria-hidden>
           <span className="splash-bar-fill" />
         </span>
@@ -277,7 +277,7 @@ function OpenError({ onRetry }: { onRetry: () => void }) {
   return (
     <main className="grid min-h-dvh place-items-center bg-foam px-6 text-center text-ink">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Não deu para abrir</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Não deu para abrir.</h1>
         <p className="mt-2 text-sm text-moss">O livro neste aparelho veio quebrado. Dá para recomeçar com o mês de exemplo.</p>
         <button type="button" className="mt-6 h-12 rounded-full bg-leaf px-5 text-sm font-semibold text-paper" onClick={onRetry}>
           Recomeçar

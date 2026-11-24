@@ -108,7 +108,7 @@ export function Panels({ panel, onClose }: { panel: Panel | null; onClose: () =>
         : panel.kind === "goal"
           ? "Um alvo para separar dinheiro."
           : panel.kind === "contribute"
-            ? "Marca o progresso. Pode mover o saldo junto."
+            ? "Marca o progresso. O saldo pode ser movido junto."
             : panel.kind === "account"
               ? "O saldo inicial entra antes dos lançamentos."
               : "Categorias organizam entradas e saídas.";
@@ -485,7 +485,7 @@ function GoalForm({ goal, onDone }: { goal?: Goal; onDone: () => void }) {
         e.preventDefault();
         const value = parseMoney(target);
         if (!name.trim() || !value) {
-          setError("Dê um nome e um valor alvo.");
+          setError("Dê um nome e informe o valor do alvo.");
           return;
         }
         save({
@@ -640,7 +640,7 @@ function AccountForm({ account, onDone }: { account?: Account; onDone: () => voi
         e.preventDefault();
         const value = parseSigned(opening);
         if (!name.trim() || value === null) {
-          setError("Nome e saldo inicial. Use negativo para fatura já aberta.");
+          setError("Informe o nome e o saldo inicial. Use um valor negativo se a fatura já estiver aberta.");
           return;
         }
         const ok = save({
