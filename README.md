@@ -4,7 +4,7 @@
 ![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
 
-Livro-caixa neste aparelho: patrimônio, fluxo, limites, metas e relatórios. Os lançamentos ficam em `localStorage`. Os números sobem e descem quando o mês muda.
+Livro-caixa neste aparelho: patrimônio, fluxo, limites, metas e relatórios. Os lançamentos ficam em `localStorage`. Os números sobem e descem quando o mês muda. Publicado em [gabrielteramae.github.io/minhas-financas](https://gabrielteramae.github.io/minhas-financas/).
 
 ## Stack
 
