@@ -41,17 +41,30 @@ const PRIMARY: { id: View; label: string; icon: typeof House }[] = [
 function CaixaMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 140 140" className={className} aria-hidden>
-      <circle cx="70" cy="70" r="62" fill="#3a3a3a" />
-      <circle cx="70" cy="70" r="54" fill="#f5f5f5" />
-      <circle cx="70" cy="70" r="43" fill="none" stroke="#111111" strokeWidth="3.5" />
+      <defs>
+        <linearGradient id="mf-rim" x1="20" y1="12" x2="120" y2="128">
+          <stop offset="0" stopColor="#fff4b0" />
+          <stop offset="0.45" stopColor="#f0b429" />
+          <stop offset="1" stopColor="#c47d00" />
+        </linearGradient>
+        <radialGradient id="mf-face" cx="38%" cy="32%" r="70%">
+          <stop offset="0" stopColor="#ffe56a" />
+          <stop offset="0.55" stopColor="#f5c518" />
+          <stop offset="1" stopColor="#e39b00" />
+        </radialGradient>
+      </defs>
+      <circle cx="70" cy="70" r="62" fill="url(#mf-rim)" />
+      <circle cx="70" cy="70" r="50" fill="url(#mf-face)" />
+      <circle cx="70" cy="70" r="40" fill="none" stroke="#30d158" strokeWidth="4" />
+      <circle cx="70" cy="70" r="33" fill="none" stroke="#fff6c2" strokeWidth="2" />
       <path
         d="M84 52c-8-8-28-6-28 8 0 16 32 8 32 24 0 12-18 16-30 8"
         fill="none"
-        stroke="#111111"
+        stroke="#145c32"
         strokeWidth="7"
         strokeLinecap="round"
       />
-      <path d="M70 42v56" stroke="#111111" strokeWidth="7" strokeLinecap="round" />
+      <path d="M70 42v56" stroke="#145c32" strokeWidth="7" strokeLinecap="round" />
     </svg>
   );
 }
@@ -119,12 +132,7 @@ function Intro({ onDone }: { onDone: () => void }) {
   return (
     <main className="mx-auto flex h-dvh w-full max-w-[430px] flex-col bg-foam">
       <div className="flex items-center px-5 pt-6 text-ink">
-        <svg viewBox="0 0 32 32" className="h-8 w-8" aria-hidden>
-          <circle cx="16" cy="16" r="13" fill="#f5f5f5" />
-          <circle cx="16" cy="16" r="9.5" fill="none" stroke="#111111" strokeWidth="1.6" />
-          <path d="M19.2 11.2c-2-1.8-6.2-1.2-6.2 2 0 3.4 6.6 1.6 6.6 5 0 2.6-3.8 3.4-6.2 1.8" fill="none" stroke="#111111" strokeWidth="1.8" strokeLinecap="round" />
-          <path d="M16 9.2v13.6" stroke="#111111" strokeWidth="1.8" strokeLinecap="round" />
-        </svg>
+        <CaixaMark className="h-8 w-8" />
         <span className="ml-2 text-lg font-semibold tracking-tight">Minhas Finanças</span>
       </div>
       <div className="cesta-in flex min-h-0 flex-1 items-end px-3 pb-2">{slide.art}</div>
