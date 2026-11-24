@@ -3,12 +3,17 @@ import {
   ArrowsLeftRight,
   Bank,
   ChartLine,
+  Eye,
+  EyeSlash,
   Gear,
   MagnifyingGlass,
   PencilSimple,
   Plus,
+  Receipt,
   Tag,
+  Target,
   Trash,
+  Wallet,
   X,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
@@ -16,20 +21,15 @@ import { useFinance } from "@/lib/finance/store";
 import {
   balances,
   byCategory,
-  deltaPct,
   granularityFor,
   goalSaved,
-  largestExpense,
   netWorthSeries,
-  safetyMonths,
   seriesFor,
   spentInMonth,
   splitPeriod,
   sumFlow,
   upcoming,
   wealthSplit,
-  weekdayExpenses,
-  WEEKDAY_LABELS,
   makePeriod,
 } from "@/lib/finance/calc";
 import {
@@ -45,10 +45,10 @@ import {
 import { ACCOUNT_TYPE_LABEL, TX_LABEL } from "@/lib/finance/labels";
 import type { Category, Transaction } from "@/lib/finance/types";
 import { cn } from "@/lib/cn";
-import { FlowChart, SharePie, WealthChart, WeekChart } from "./charts";
+import { FlowChart, SharePie, WealthChart } from "./charts";
 import { useClock, useUI } from "./context";
 import { Chevron, Icon, toneClass, toneStroke } from "./icons";
-import { Button, Card, Chip, Delta, Empty, fieldClass, Kicker, Money } from "./ui";
+import { Button, Card, Chip, Empty, fieldClass, Kicker, Money } from "./ui";
 
 export function usePeriod() {
   const mode = useFinance((s) => s.rangeMode);
@@ -64,7 +64,7 @@ export function usePeriod() {
   }, [mode, offset, txs, today, todayISO]);
 }
 
-export function PeriodBar() {
+export function PeriodBar({ compact = false }: { compact?: boolean }) {
   const mode = useFinance((s) => s.rangeMode);
   const offset = useFinance((s) => s.monthOffset);
   const setRangeMode = useFinance((s) => s.setRangeMode);
@@ -100,6 +100,7 @@ export function PeriodBar() {
           <Chevron dir="right" className="size-5" />
         </button>
       </div>
+      {compact ? null : (
       <div className="mt-3 flex flex-wrap gap-2">
         {modes.map((item) => (
           <Chip
@@ -114,6 +115,7 @@ export function PeriodBar() {
           </Chip>
         ))}
       </div>
+      )}
     </div>
   );
 }
@@ -136,49 +138,31 @@ function Meter({ realized, scheduled, limit }: { realized: number; scheduled: nu
 export function Overview() {
   const ledger = useFinance();
   const setView = useFinance((s) => s.setView);
-  const setFlow = useFinance((s) => s.setFlow);
   const hideHint = useFinance((s) => s.hideHint);
   const resetDemo = useFinance((s) => s.resetDemo);
   const { today, todayISO } = useClock();
   const ui = useUI();
   const period = usePeriod();
-  const rangeMode = ledger.rangeMode;
+  const [hidden, setHidden] = useState(false);
   const picture = useMemo(() => {
     const map = balances(ledger.accounts, ledger.transactions, todayISO);
     const wealth = wealthSplit(map);
     const nowFlow = sumFlow(ledger.transactions, period.realized);
-    const laterFlow = sumFlow(ledger.transactions, period.scheduled);
-    const prevBounds = period.prevStart && period.prevEnd ? { start: period.prevStart, end: period.prevEnd } : null;
-    const prevFlow = sumFlow(ledger.transactions, prevBounds);
-    const cats = [...byCategory(ledger.transactions, period.realized, "expense")].sort((a, b) => b[1] - a[1]);
-    const catTotal = cats.reduce((n, [, v]) => n + v, 0) || 1;
-    const grain = period.realized ? granularityFor(period.realized.start, period.realized.end) : "day";
-    const points = seriesFor(ledger.transactions, period.realized, grain);
-    const soon = upcoming(ledger.transactions, todayISO).slice(0, 5);
-    const safety = safetyMonths(ledger, today);
-    const big = largestExpense(ledger.transactions, period.realized);
-    const week = weekdayExpenses(ledger.transactions, period.realized);
-    let hot = 0;
-    week.forEach((v, i) => {
-      if (v > week[hot]!) hot = i;
-    });
-    const budgetMonth = rangeMode === "month" ? period.start.slice(0, 7) : monthKey(today);
-    const budgetRows = ledger.categories
-      .filter((c) => c.kind === "expense")
-      .map((cat) => {
-        const budget = ledger.budgets.find((b) => b.categoryId === cat.id && b.month === budgetMonth);
-        const spent = spentInMonth(ledger.transactions, cat.id, budgetMonth, todayISO);
-        return { cat, budget, ...spent };
-      })
-      .filter((row) => row.budget)
-      .sort((a, b) => (b.realized + b.scheduled) / (b.budget?.limit || 1) - (a.realized + a.scheduled) / (a.budget?.limit || 1))
+    const soon = upcoming(ledger.transactions, todayISO).slice(0, 1);
+    const recent = ledger.transactions
+      .filter((t) => t.date <= todayISO && t.type !== "transfer")
+      .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
       .slice(0, 3);
-    return { map, wealth, nowFlow, laterFlow, prevBounds, prevFlow, cats, catTotal, points, soon, safety, big, week, hot, budgetRows };
-  }, [ledger, period, today, todayISO, rangeMode]);
-  const { map, wealth, nowFlow, laterFlow, prevBounds, prevFlow, cats, catTotal, points, soon, safety, big, week, hot, budgetRows } = picture;
+    const goal = ledger.goals[0];
+    const goalLine = goal
+      ? { name: goal.name, saved: goalSaved(goal), target: goal.target }
+      : null;
+    return { wealth, nowFlow, soon, recent, goalLine };
+  }, [ledger, period, todayISO]);
+  const { wealth, nowFlow, soon, recent, goalLine } = picture;
 
   const hello = today.getHours() < 12 ? "Bom dia" : today.getHours() < 18 ? "Boa tarde" : "Boa noite";
-  const circles = ledger.categories.filter((c) => c.kind === "expense").slice(0, 8);
+  const mask = hidden ? "R$ ••••" : null;
 
   if (ledger.origin === "empty" && ledger.transactions.length === 0) {
     return (
@@ -199,235 +183,178 @@ export function Overview() {
 
   return (
     <div className="rise flex flex-col gap-4">
-      <div>
-        <p className="text-sm text-muted">{hello}</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-ink">Minhas Finanças</h1>
-        <p className="mt-1 text-sm text-moss">O que você tem, o que entrou e o que saiu. {period.label}.</p>
+      <div className="flex items-center gap-3">
+        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-ink text-sm font-semibold text-paper">GC</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-base font-semibold tracking-tight text-ink">Olá, Gabriel</p>
+          <p className="text-sm text-moss">{hello}</p>
+        </div>
       </div>
-
-      <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 scroll-thin">
-        {circles.map((cat) => (
-          <button
-            key={cat.id}
-            type="button"
-            className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1.5 active:scale-[0.97]"
-            onClick={() => {
-              setFlow({ categoryId: cat.id, type: "expense", periodOnly: true, q: "", accountId: "all", sort: "recent" });
-              setView("flow");
-            }}
-          >
-            <span className="grid size-14 place-items-center rounded-full bg-paper text-leaf ring-1 ring-mist">
-              <Icon name={cat.icon} className="size-6" weight="fill" />
-            </span>
-            <span className="w-full truncate text-center text-xs text-moss">{cat.name}</span>
-          </button>
-        ))}
-      </div>
-
-      <button type="button" className="overflow-hidden rounded-3xl bg-leaf px-5 py-5 text-left text-paper active:scale-[0.99]" onClick={() => setView("reports")}>
-        <p className="text-sm text-paper/75">Neste mês</p>
-        <p className="mt-1 text-2xl font-semibold tracking-tight leading-tight">
-          {nowFlow.net >= 0 ? "Entrou mais do que saiu." : "Saiu mais do que entrou."}
-        </p>
-        <p className="mt-2 text-sm text-paper/80">Resultado {brl(nowFlow.net)}. Toque para ver o gráfico.</p>
-      </button>
 
       {ledger.origin === "demo" && !ledger.hintHidden ? (
-        <div className="flex items-start gap-3 rounded-2xl bg-surface px-4 py-3">
-          <p className="flex-1 text-sm text-muted">Livro de exemplo para explorar. O que você lançar fica só neste aparelho.</p>
-          <button type="button" className="grid size-11 shrink-0 place-items-center text-muted active:scale-95" aria-label="Dispensar aviso" onClick={hideHint}>
+        <div className="flex items-center gap-3">
+          <p className="flex-1 text-sm text-moss">Números de exemplo, só neste aparelho.</p>
+          <button type="button" className="grid size-11 shrink-0 place-items-center text-moss" aria-label="Dispensar aviso" onClick={hideHint}>
             <X className="size-4" weight="bold" />
           </button>
         </div>
       ) : null}
 
-      <Card>
-        <Kicker>O que você tem</Kicker>
-        <p className="mt-2">
-          <Money value={wealth.net} display className="text-4xl leading-none sm:text-5xl" />
-        </p>
-        <p className="mt-3 text-sm text-muted">
-          Ativos {brl(wealth.assets)}
-          {wealth.debts > 0 ? <span className="text-clay"> · Dívidas {brl(wealth.debts)}</span> : null}
-        </p>
-        {wealth.assets > 0 ? (
-          <div className="mt-4 flex h-2 overflow-hidden rounded-full bg-bg">
-            {ledger.accounts.map((account) => {
-              const value = map.get(account.id) ?? 0;
-              if (value <= 0) return null;
-              return (
-                <div
-                  key={account.id}
-                  style={{ width: `${(value / wealth.assets) * 100}%`, background: toneStroke(account.tone) }}
-                  title={account.name}
-                />
-              );
-            })}
-          </div>
-        ) : null}
-      </Card>
-
-      <PeriodBar />
-
-      <div className="grid grid-cols-2 gap-2">
-        <Card className="p-3">
-          <p className="text-xs text-muted">Entrou</p>
-          <Money value={nowFlow.income} intent="income" className="mt-1 text-base" />
-          <div className="mt-1">
-            <Delta pct={deltaPct(nowFlow.income, prevBounds ? prevFlow.income : null)} goodWhenUp />
-          </div>
-        </Card>
-        <Card className="p-3">
-          <p className="text-xs text-muted">Saiu</p>
-          <Money value={nowFlow.expense} intent="expense" className="mt-1 text-base" />
-          <div className="mt-1">
-            <Delta pct={deltaPct(nowFlow.expense, prevBounds ? prevFlow.expense : null)} goodWhenUp={false} />
-          </div>
-        </Card>
+      <div className="flex min-h-40 flex-col justify-between rounded-3xl bg-paper p-5 ring-1 ring-mist">
+        <span className="flex w-full items-start justify-between">
+          <button
+            type="button"
+            aria-label={hidden ? "Mostrar saldo" : "Ocultar saldo"}
+            className="grid size-11 place-items-center rounded-full text-leaf"
+            onClick={() => setHidden((v) => !v)}
+          >
+            {hidden ? <EyeSlash className="size-5" weight="bold" /> : <Eye className="size-5" weight="bold" />}
+          </button>
+          <button type="button" className="text-sm font-medium text-leaf" onClick={() => setView("accounts")}>
+            Contas
+          </button>
+        </span>
+        <span>
+          <span className="block text-sm text-moss">Saldo</span>
+          {mask ? (
+            <span className="mt-1 block text-4xl font-semibold tracking-tight text-ink">{mask}</span>
+          ) : (
+            <Money value={wealth.net} display className="mt-1 text-4xl leading-none" />
+          )}
+        </span>
       </div>
-      <Card className="p-3">
-        <p className="text-xs text-muted">Sobrou no período</p>
-        <Money value={nowFlow.net} intent="result" className="mt-1 text-2xl" />
-        <div className="mt-1">
-          <Delta pct={deltaPct(nowFlow.net, prevBounds ? prevFlow.net : null)} goodWhenUp />
-        </div>
-      </Card>
 
-      {(laterFlow.income > 0 || laterFlow.expense > 0) && (
-        <p className="text-sm text-muted">
-          Previsto ainda neste período:{" "}
-          {laterFlow.income > 0 ? <span className="text-sage">{brl(laterFlow.income)} a entrar</span> : null}
-          {laterFlow.income > 0 && laterFlow.expense > 0 ? " e " : null}
-          {laterFlow.expense > 0 ? <span className="text-clay">{brl(laterFlow.expense)} a sair</span> : null}.
-        </p>
-      )}
+      <div className="grid grid-cols-2 gap-3">
+        <Shortcut icon={Receipt} label="Extrato" onClick={() => setView("flow")} />
+        <Shortcut icon={Wallet} label="Orçamento" onClick={() => setView("budgets")} />
+        <Shortcut icon={Target} label="Metas" onClick={() => setView("goals")} />
+        <Shortcut icon={ChartLine} label="Relatórios" onClick={() => setView("reports")} />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <Shortcut icon={Bank} label="Contas" compact onClick={() => setView("accounts")} />
+        <Shortcut icon={Tag} label="Categorias" compact onClick={() => setView("classes")} />
+        <Shortcut icon={Gear} label="Ajustes" compact onClick={() => setView("settings")} />
+      </div>
 
-      <Card>
-        <Kicker>No período</Kicker>
-        <div className="mt-3">
-          <FlowChart data={points} />
-        </div>
-        <p className="mt-2 text-xs text-muted">Só o que já aconteceu. Verde entra, vermelho sai.</p>
-      </Card>
+      <div className="scroll-thin -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4">
+        <button
+          type="button"
+          className="flex min-h-40 w-[78%] shrink-0 snap-start flex-col justify-between rounded-3xl bg-leaf p-5 text-left text-paper active:scale-[0.99]"
+          onClick={() => setView("reports")}
+        >
+          <span className="text-sm text-paper/75">Neste mês</span>
+          <span>
+            <span className="block text-2xl font-semibold leading-tight tracking-tight">
+              {nowFlow.net >= 0 ? "Sobrou dinheiro." : "Saiu mais do que entrou."}
+            </span>
+            <span className="mt-2 block text-sm text-paper/80">{mask ?? brl(nowFlow.net)}</span>
+          </span>
+        </button>
+        {soon[0] ? (
+          <button
+            type="button"
+            className="flex min-h-40 w-[78%] shrink-0 snap-start flex-col justify-between rounded-3xl bg-ink p-5 text-left text-paper active:scale-[0.99]"
+            onClick={() => setView("flow")}
+          >
+            <span className="text-sm text-paper/60">Próximo</span>
+            <span>
+              <span className="block text-2xl font-semibold leading-tight tracking-tight">{soon[0].note || TX_LABEL[soon[0].type]}</span>
+              <span className="mt-2 block text-sm text-paper/70">
+                {shortDate(soon[0].date)} · {mask ?? brl(soon[0].amount, { cents: false })}
+              </span>
+            </span>
+          </button>
+        ) : null}
+        {goalLine ? (
+          <button
+            type="button"
+            className="flex min-h-40 w-[78%] shrink-0 snap-start flex-col justify-between rounded-3xl bg-[#f3e6c4] p-5 text-left text-ink active:scale-[0.99]"
+            onClick={() => setView("goals")}
+          >
+            <span className="text-sm text-ink/60">Meta</span>
+            <span>
+              <span className="block text-2xl font-semibold leading-tight tracking-tight">{goalLine.name}</span>
+              <span className="mt-2 block text-sm text-ink/70">
+                {mask ? "Valor oculto" : `${brl(goalLine.saved, { cents: false })} de ${brl(goalLine.target, { cents: false })}`}
+              </span>
+            </span>
+          </button>
+        ) : null}
+      </div>
 
       <section>
-        <div className="mb-3 flex items-end justify-between">
-          <h2 className="font-serif text-xl">Para onde foi</h2>
-          <button type="button" className="text-sm font-medium text-fg" onClick={() => setView("classes")}>
-            Ver todas
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight text-ink">Últimos</h2>
+          <button type="button" className="text-sm font-medium text-leaf" onClick={() => setView("flow")}>
+            Extrato
           </button>
         </div>
-        {cats.length === 0 ? (
-          <p className="text-sm text-muted">Nenhuma saída realizada neste período.</p>
-        ) : (
-          <Card className="divide-y divide-line p-0">
-            {cats.slice(0, 5).map(([id, value]) => {
-              const cat = ledger.categories.find((c) => c.id === id);
-              if (!cat) return null;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left"
-                  onClick={() => {
-                    setFlow({ categoryId: id, type: "expense", periodOnly: true, q: "", accountId: "all", sort: "recent" });
-                    setView("flow");
-                  }}
-                >
-                  <span className={cn("grid size-11 place-items-center rounded-full bg-mist text-leaf")}>
-                    <Icon name={cat.icon} className="size-5" weight="fill" />
+        <div className="flex flex-col">
+          {recent.map((tx) => {
+            const cat = ledger.categories.find((c) => c.id === tx.categoryId);
+            return (
+              <button key={tx.id} type="button" className="flex items-center gap-3 py-3 text-left" onClick={() => setView("flow")}>
+                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-paper text-leaf ring-1 ring-mist">
+                  <Icon name={cat?.icon ?? "spark"} className="size-5" weight="fill" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-ink">{tx.note || cat?.name || TX_LABEL[tx.type]}</span>
+                  <span className="block truncate text-xs text-moss">
+                    {cat?.name ?? TX_LABEL[tx.type]} · {shortDate(tx.date)}
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm">{cat.name}</span>
-                    <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-bg">
-                      <span className="block h-full rounded-full bg-clay" style={{ width: `${(value / catTotal) * 100}%` }} />
-                    </span>
-                  </span>
-                  <span className="text-sm tabular-nums text-fg">{brl(value, { cents: false })}</span>
-                </button>
-              );
-            })}
-          </Card>
-        )}
-      </section>
-
-      {soon.length > 0 ? (
-        <section>
-          <h2 className="mb-3 font-serif text-xl">Ainda vai cair</h2>
-          <Card className="divide-y divide-line p-0">
-            {soon.map((tx) => (
-              <div key={tx.id} className="flex items-center gap-3 px-4 py-3">
-                <span className="w-14 shrink-0 text-xs text-muted">{shortDate(tx.date)}</span>
-                <span className="min-w-0 flex-1 truncate text-sm">{tx.note || TX_LABEL[tx.type]}</span>
-                <Money
-                  value={tx.type === "expense" ? -tx.amount : tx.amount}
-                  intent={tx.type === "expense" ? "expense" : tx.type === "income" ? "income" : "neutral"}
-                  className="text-sm"
-                />
-              </div>
-            ))}
-          </Card>
-        </section>
-      ) : null}
-
-      {budgetRows.length > 0 ? (
-        <section>
-          <div className="mb-3 flex items-end justify-between">
-            <h2 className="font-serif text-xl">Teto do mês</h2>
-            <button type="button" className="text-sm font-medium text-fg" onClick={() => setView("budgets")}>
-              Abrir
-            </button>
-          </div>
-          <Card className="flex flex-col gap-4">
-            {budgetRows.map((row) => (
-              <div key={row.cat.id}>
-                <div className="mb-1.5 flex items-center justify-between gap-2 text-sm">
-                  <span>{row.cat.name}</span>
-                  <span className="tabular-nums text-muted">
-                    {brl(row.realized, { cents: false })} / {brl(row.budget?.limit ?? 0, { cents: false })}
-                  </span>
-                </div>
-                <Meter realized={row.realized} scheduled={row.scheduled} limit={row.budget?.limit ?? 0} />
-              </div>
-            ))}
-          </Card>
-        </section>
-      ) : null}
-
-      <section className="grid gap-3">
-        <Card>
-          <Kicker>Reserva</Kicker>
-          <p className="mt-2 font-serif text-2xl text-fg">
-            {safety ? `${safety.months.toFixed(1).replace(".", ",")} meses` : "—"}
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            {safety ? `Média de ${brl(safety.avg, { cents: false })} por mês nas saídas recentes.` : "Ainda sem histórico suficiente."}
-          </p>
-        </Card>
-        <Card>
-          <Kicker>Maior saída</Kicker>
-          <p className="mt-2 font-serif text-2xl text-fg">{big ? brl(big.amount, { cents: false }) : "—"}</p>
-          <p className="mt-1 truncate text-sm text-muted">{big ? big.note || "Sem nota" : "Nada neste período."}</p>
-        </Card>
-        <Card>
-          <Kicker>Dia mais caro</Kicker>
-          <p className="mt-2 font-serif text-2xl text-fg">{week[hot]! > 0 ? WEEKDAY_LABELS[hot] : "—"}</p>
-          <p className="mt-1 text-sm text-muted">
-            {week[hot]! > 0 ? `${brl(week[hot]!, { cents: false })} em saídas.` : "Sem saídas para comparar."}
-          </p>
-        </Card>
-      </section>
-
-      <details className="rounded-2xl border border-line bg-surface px-4 py-3">
-        <summary className="cursor-pointer text-sm text-muted">Como os números fecham</summary>
-        <div className="mt-3 space-y-2 text-sm text-muted">
-          <p>Patrimônio soma contas, reserva, carteira e investimentos, e desconta faturas e saldos negativos.</p>
-          <p>Entradas e saídas não incluem transferências entre as suas contas.</p>
-          <p>Metas organizam um plano. Só entram no patrimônio se você mover o dinheiro de verdade.</p>
-          <p>Lançamentos futuros aparecem como previstos e não mudam o saldo de hoje.</p>
+                </span>
+                <span className={cn("text-sm font-medium tabular-nums", tx.type === "expense" ? "text-ink" : "text-leaf")}>
+                  {mask ?? `${tx.type === "expense" ? "− " : "+ "}${brl(tx.amount)}`}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      </details>
+      </section>
+
+      {soon[0] ? (
+        <button type="button" className="flex items-center justify-between gap-3 rounded-3xl bg-paper px-4 py-4 text-left ring-1 ring-mist" onClick={() => setView("flow")}>
+          <span>
+            <span className="block text-sm text-moss">Próximo</span>
+            <span className="mt-0.5 block text-sm font-medium text-ink">{soon[0].note || TX_LABEL[soon[0].type]}</span>
+          </span>
+          <span className="text-right text-sm text-moss">
+            {shortDate(soon[0].date)}
+            <span className="mt-0.5 block font-medium text-ink">{mask ?? brl(soon[0].amount, { cents: false })}</span>
+          </span>
+        </button>
+      ) : null}
+
+      <p className="text-center text-sm text-moss">
+        {mask ? "Valores ocultos" : <>Neste mês entrou {brl(nowFlow.income, { cents: false })} e saiu {brl(nowFlow.expense, { cents: false })}.</>}
+      </p>
     </div>
+  );
+}
+
+function Shortcut({
+  icon: IconGlyph,
+  label,
+  onClick,
+  compact,
+}: {
+  icon: typeof Receipt;
+  label: string;
+  onClick: () => void;
+  compact?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "flex flex-col justify-between rounded-3xl bg-paper p-4 text-left ring-1 ring-mist active:scale-[0.98]",
+        compact ? "min-h-28" : "min-h-36",
+      )}
+      onClick={onClick}
+    >
+      <IconGlyph className="size-6 text-leaf" weight="bold" />
+      <span className="text-[15px] font-medium leading-tight text-ink">{label}</span>
+    </button>
   );
 }
 
@@ -460,6 +387,7 @@ export function FlowView() {
   const period = usePeriod();
   const [openId, setOpenId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [moreFilters, setMoreFilters] = useState(false);
 
   const filtered = txs.filter((t) => {
     if (flow.periodOnly && (t.date < period.start || t.date > period.end)) return false;
@@ -493,24 +421,11 @@ export function FlowView() {
     for (const tx of pastItems) pushGroup(tx);
   }
 
-  const income = filtered.filter((t) => t.type === "income").reduce((n, t) => n + t.amount, 0);
-  const expense = filtered.filter((t) => t.type === "expense").reduce((n, t) => n + t.amount, 0);
-
   return (
     <div className="rise flex flex-col gap-4">
       <PeriodBar />
       <div className="flex items-end justify-between gap-3">
-        <div>
-          <p className="text-sm text-muted">{filtered.length} lançamentos</p>
-          <p className="text-sm">
-            <span className="text-sage">{brl(income, { cents: false })}</span>
-            <span className="text-muted"> · </span>
-            <span className="text-clay">{brl(expense, { cents: false })}</span>
-          </p>
-        </div>
-        <Chip active={!flow.periodOnly} onClick={() => setFlow({ periodOnly: !flow.periodOnly })}>
-          {flow.periodOnly ? "No período" : "Histórico todo"}
-        </Chip>
+        <p className="text-sm text-muted">{filtered.length} lançamentos</p>
       </div>
       <div className="relative">
         <MagnifyingGlass className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-faint" weight="bold" />
@@ -534,28 +449,45 @@ export function FlowView() {
             {label}
           </Chip>
         ))}
-        <Chip active={flow.sort === "amount"} onClick={() => setFlow({ sort: flow.sort === "amount" ? "recent" : "amount" })}>
-          {flow.sort === "amount" ? "Maiores" : "Recentes"}
+        <Chip active={moreFilters} onClick={() => setMoreFilters((v) => !v)}>
+          Filtros
         </Chip>
       </div>
-      <div className="scroll-thin -mx-4 flex gap-2 overflow-x-auto px-4">
-        <Chip active={flow.categoryId === "all"} onClick={() => setFlow({ categoryId: "all" })}>
-          Todas as categorias
-        </Chip>
-        {categories.map((cat) => (
-          <Chip key={cat.id} active={flow.categoryId === cat.id} onClick={() => setFlow({ categoryId: cat.id, type: cat.kind })}>
-            {cat.name}
-          </Chip>
-        ))}
-      </div>
-      <select className={fieldClass} value={flow.accountId} onChange={(e) => setFlow({ accountId: e.target.value })}>
-        <option value="all">Todas as contas</option>
-        {accounts.map((a) => (
-          <option key={a.id} value={a.id}>
-            {a.name}
-          </option>
-        ))}
-      </select>
+      {flow.categoryId !== "all" ? (
+        <button type="button" className="text-left text-sm text-leaf" onClick={() => setFlow({ categoryId: "all" })}>
+          {categories.find((c) => c.id === flow.categoryId)?.name ?? "Categoria"} · tirar filtro
+        </button>
+      ) : null}
+      {moreFilters ? (
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-2">
+            <Chip active={!flow.periodOnly} onClick={() => setFlow({ periodOnly: !flow.periodOnly })}>
+              {flow.periodOnly ? "Só este período" : "Histórico todo"}
+            </Chip>
+            <Chip active={flow.sort === "amount"} onClick={() => setFlow({ sort: flow.sort === "amount" ? "recent" : "amount" })}>
+              {flow.sort === "amount" ? "Maiores" : "Mais recentes"}
+            </Chip>
+          </div>
+          <div className="scroll-thin -mx-4 flex gap-2 overflow-x-auto px-4">
+            <Chip active={flow.categoryId === "all"} onClick={() => setFlow({ categoryId: "all" })}>
+              Todas
+            </Chip>
+            {categories.map((cat) => (
+              <Chip key={cat.id} active={flow.categoryId === cat.id} onClick={() => setFlow({ categoryId: cat.id, type: cat.kind })}>
+                {cat.name}
+              </Chip>
+            ))}
+          </div>
+          <select className={fieldClass} value={flow.accountId} onChange={(e) => setFlow({ accountId: e.target.value })}>
+            <option value="all">Todas as contas</option>
+            {accounts.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
 
       {filtered.length === 0 ? (
         <Empty title="Nada por aqui" body="Troque o filtro ou lance um movimento novo." action={<Button onClick={() => ui.openTx()}>Novo lançamento</Button>} />
@@ -743,8 +675,7 @@ export function GoalsView() {
 
   return (
     <div className="rise flex flex-col gap-4">
-      <div className="flex items-end justify-between gap-3">
-        <p className="max-w-xs text-sm text-muted">As metas não somam de novo no patrimônio. Aporte e, se quiser, mova o saldo junto.</p>
+      <div className="flex justify-end">
         <Button className="h-10 shrink-0 px-3" onClick={() => ui.openGoal()}>
           <Plus className="size-4" weight="bold" /> Meta
         </Button>
@@ -892,6 +823,7 @@ export function ReportsView() {
   const ledger = useFinance();
   const { today, todayISO } = useClock();
   const period = usePeriod();
+  const [part, setPart] = useState<"mes" | "categorias" | "patrimonio">("mes");
   const wealth = netWorthSeries(ledger, today, 6);
   const grain = period.realized ? granularityFor(period.realized.start, period.realized.end) : "month";
   const points = seriesFor(ledger.transactions, period.realized, grain);
@@ -903,71 +835,58 @@ export function ReportsView() {
     return { name: cat?.name ?? "Classe", value, fill: toneStroke(cat?.tone ?? "mist") };
   });
   if (rest > 0) pie.push({ name: "Outras", value: rest, fill: "var(--color-faint)" });
-  const week = weekdayExpenses(ledger.transactions, period.realized);
-  const weekData = [1, 2, 3, 4, 5, 6, 0].map((i) => ({ label: WEEKDAY_LABELS[i] ?? "", expense: week[i] ?? 0 }));
-  const big = ledger.transactions
-    .filter((t) => t.type === "expense" && period.realized && t.date >= period.realized.start && t.date <= period.realized.end)
-    .slice()
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 5);
-  const rateBase = sumFlow(ledger.transactions, period.realized);
-  const rate = rateBase.income > 0 ? (rateBase.net / rateBase.income) * 100 : null;
 
   return (
     <div className="rise flex flex-col gap-4">
+      <div className="flex gap-2">
+        {(
+          [
+            ["mes", "Mês"],
+            ["categorias", "Categorias"],
+            ["patrimonio", "Patrimônio"],
+          ] as const
+        ).map(([id, label]) => (
+          <Chip key={id} active={part === id} onClick={() => setPart(id)}>
+            {label}
+          </Chip>
+        ))}
+      </div>
       <PeriodBar />
-      <Card>
-        <Kicker>Patrimônio</Kicker>
-        <p className="mt-1 text-sm text-muted">Fechamento de cada um dos últimos meses, até {shortDate(todayISO)}.</p>
-        <div className="mt-3">
-          <WealthChart data={wealth} />
-        </div>
-      </Card>
-      <Card>
-        <div className="flex items-end justify-between gap-3">
-          <Kicker>Entradas e saídas</Kicker>
-          <p className="text-sm text-muted">{rate === null ? "Sem entradas" : `Sobra ${rate.toFixed(0)}% das entradas`}</p>
-        </div>
-        <div className="mt-3">
-          <FlowChart data={points} />
-        </div>
-      </Card>
-      <Card>
-        <Kicker>Por categoria</Kicker>
-        <SharePie data={pie} />
-        <ul className="mt-2 space-y-2">
-          {pie.map((row) => {
-            const total = pie.reduce((n, item) => n + item.value, 0) || 1;
-            return (
-              <li key={row.name} className="flex items-center gap-3 text-sm">
-                <span className="size-2.5 rounded-full" style={{ background: row.fill }} />
-                <span className="min-w-0 flex-1 truncate">{row.name}</span>
-                <span className="tabular-nums text-muted">{Math.round((row.value / total) * 100)}%</span>
-                <span className="tabular-nums">{brl(row.value, { cents: false })}</span>
-              </li>
-            );
-          })}
-        </ul>
-      </Card>
-      <Card>
-        <Kicker>Dia da semana</Kicker>
-        <div className="mt-3">
-          <WeekChart data={weekData} />
-        </div>
-      </Card>
-      <Card>
-        <Kicker>Maiores saídas</Kicker>
-        <ul className="mt-3 divide-y divide-line">
-          {big.length === 0 ? <li className="text-sm text-muted">Nenhuma saída no período.</li> : null}
-          {big.map((tx) => (
-            <li key={tx.id} className="flex items-center gap-3 py-2 text-sm">
-              <span className="w-14 text-xs text-muted">{shortDate(tx.date)}</span>
-              <span className="min-w-0 flex-1 truncate">{tx.note || "Saída"}</span>
-              <span className="tabular-nums text-clay">{brl(tx.amount)}</span>
-            </li>
-          ))}
-        </ul>
-      </Card>
+      {part === "patrimonio" ? (
+        <Card>
+          <Kicker>O que você tem</Kicker>
+          <p className="mt-1 text-sm text-muted">Até {shortDate(todayISO)}.</p>
+          <div className="mt-3">
+            <WealthChart data={wealth} />
+          </div>
+        </Card>
+      ) : null}
+      {part === "mes" ? (
+        <Card>
+          <Kicker>Entrou e saiu</Kicker>
+          <div className="mt-3">
+            <FlowChart data={points} />
+          </div>
+        </Card>
+      ) : null}
+      {part === "categorias" ? (
+        <Card>
+          <Kicker>Para onde foi</Kicker>
+          <SharePie data={pie} />
+          <ul className="mt-2 space-y-2">
+            {pie.map((row) => {
+              const total = pie.reduce((n, item) => n + item.value, 0) || 1;
+              return (
+                <li key={row.name} className="flex items-center gap-3 text-sm">
+                  <span className="size-2.5 rounded-full" style={{ background: row.fill }} />
+                  <span className="min-w-0 flex-1 truncate">{row.name}</span>
+                  <span className="tabular-nums">{Math.round((row.value / total) * 100)}%</span>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      ) : null}
     </div>
   );
 }

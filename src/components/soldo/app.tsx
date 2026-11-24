@@ -162,17 +162,6 @@ const TITLES: Partial<Record<View, string>> = {
   more: "Mais",
 };
 
-const SUBS: Partial<Record<View, string>> = {
-  flow: "O que entrou, o que saiu e o que passou de uma conta para outra.",
-  budgets: "Quanto cada gasto pode usar neste mês.",
-  goals: "O que você está juntando, separado do dia a dia.",
-  accounts: "Onde o dinheiro está agora.",
-  reports: "O período em gráficos.",
-  classes: "Os nomes das entradas e das saídas.",
-  settings: "Guardar uma cópia ou recomeçar.",
-  more: "Contas, gráficos, categorias e ajustes.",
-};
-
 function Shell() {
   const view = useFinance((s) => s.view);
   const setView = useFinance((s) => s.setView);
@@ -215,7 +204,6 @@ function Shell() {
                     ) : null}
                     <h1 className="text-3xl font-semibold tracking-tight text-ink">{TITLES[view]}</h1>
                   </div>
-                  {SUBS[view] ? <p className="mt-1 text-sm text-moss">{SUBS[view]}</p> : null}
                 </div>
               ) : null}
               {view === "home" ? <Overview /> : null}
