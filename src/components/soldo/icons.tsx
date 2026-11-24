@@ -73,13 +73,13 @@ export function toneClass(_tone?: Tone) {
 export function toneStroke(tone: Tone) {
   switch (tone) {
     case "gold":
-      return "var(--color-shade-1)";
+      return "#e0a82a";
     case "sage":
-      return "var(--color-shade-2)";
+      return "#146b4a";
     case "clay":
-      return "var(--color-shade-3)";
+      return "#c4382b";
     default:
-      return "var(--color-shade-4)";
+      return "#7d8f84";
   }
 }
 

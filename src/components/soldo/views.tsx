@@ -9,6 +9,7 @@ import {
   Plus,
   Tag,
   Trash,
+  X,
 } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { useFinance } from "@/lib/finance/store";
@@ -142,36 +143,39 @@ export function Overview() {
   const ui = useUI();
   const period = usePeriod();
   const rangeMode = ledger.rangeMode;
-
-  const map = balances(ledger.accounts, ledger.transactions, todayISO);
-  const wealth = wealthSplit(map);
-  const nowFlow = sumFlow(ledger.transactions, period.realized);
-  const laterFlow = sumFlow(ledger.transactions, period.scheduled);
-  const prevBounds = period.prevStart && period.prevEnd ? { start: period.prevStart, end: period.prevEnd } : null;
-  const prevFlow = sumFlow(ledger.transactions, prevBounds);
-  const cats = [...byCategory(ledger.transactions, period.realized, "expense")].sort((a, b) => b[1] - a[1]);
-  const catTotal = cats.reduce((n, [, v]) => n + v, 0) || 1;
-  const grain = period.realized ? granularityFor(period.realized.start, period.realized.end) : "day";
-  const points = seriesFor(ledger.transactions, period.realized, grain);
-  const soon = upcoming(ledger.transactions, todayISO).slice(0, 5);
-  const safety = safetyMonths(ledger, today);
-  const big = largestExpense(ledger.transactions, period.realized);
-  const week = weekdayExpenses(ledger.transactions, period.realized);
-  let hot = 0;
-  week.forEach((v, i) => {
-    if (v > week[hot]!) hot = i;
-  });
-  const budgetMonth = rangeMode === "month" ? period.start.slice(0, 7) : monthKey(today);
-  const budgetRows = ledger.categories
-    .filter((c) => c.kind === "expense")
-    .map((cat) => {
-      const budget = ledger.budgets.find((b) => b.categoryId === cat.id && b.month === budgetMonth);
-      const spent = spentInMonth(ledger.transactions, cat.id, budgetMonth, todayISO);
-      return { cat, budget, ...spent };
-    })
-    .filter((row) => row.budget)
-    .sort((a, b) => (b.realized + b.scheduled) / (b.budget?.limit || 1) - (a.realized + a.scheduled) / (a.budget?.limit || 1))
-    .slice(0, 3);
+  const picture = useMemo(() => {
+    const map = balances(ledger.accounts, ledger.transactions, todayISO);
+    const wealth = wealthSplit(map);
+    const nowFlow = sumFlow(ledger.transactions, period.realized);
+    const laterFlow = sumFlow(ledger.transactions, period.scheduled);
+    const prevBounds = period.prevStart && period.prevEnd ? { start: period.prevStart, end: period.prevEnd } : null;
+    const prevFlow = sumFlow(ledger.transactions, prevBounds);
+    const cats = [...byCategory(ledger.transactions, period.realized, "expense")].sort((a, b) => b[1] - a[1]);
+    const catTotal = cats.reduce((n, [, v]) => n + v, 0) || 1;
+    const grain = period.realized ? granularityFor(period.realized.start, period.realized.end) : "day";
+    const points = seriesFor(ledger.transactions, period.realized, grain);
+    const soon = upcoming(ledger.transactions, todayISO).slice(0, 5);
+    const safety = safetyMonths(ledger, today);
+    const big = largestExpense(ledger.transactions, period.realized);
+    const week = weekdayExpenses(ledger.transactions, period.realized);
+    let hot = 0;
+    week.forEach((v, i) => {
+      if (v > week[hot]!) hot = i;
+    });
+    const budgetMonth = rangeMode === "month" ? period.start.slice(0, 7) : monthKey(today);
+    const budgetRows = ledger.categories
+      .filter((c) => c.kind === "expense")
+      .map((cat) => {
+        const budget = ledger.budgets.find((b) => b.categoryId === cat.id && b.month === budgetMonth);
+        const spent = spentInMonth(ledger.transactions, cat.id, budgetMonth, todayISO);
+        return { cat, budget, ...spent };
+      })
+      .filter((row) => row.budget)
+      .sort((a, b) => (b.realized + b.scheduled) / (b.budget?.limit || 1) - (a.realized + a.scheduled) / (a.budget?.limit || 1))
+      .slice(0, 3);
+    return { map, wealth, nowFlow, laterFlow, prevBounds, prevFlow, cats, catTotal, points, soon, safety, big, week, hot, budgetRows };
+  }, [ledger, period, today, todayISO, rangeMode]);
+  const { map, wealth, nowFlow, laterFlow, prevBounds, prevFlow, cats, catTotal, points, soon, safety, big, week, hot, budgetRows } = picture;
 
   const hello = today.getHours() < 12 ? "Bom dia" : today.getHours() < 18 ? "Boa tarde" : "Boa noite";
   const circles = ledger.categories.filter((c) => c.kind === "expense").slice(0, 8);
@@ -198,7 +202,7 @@ export function Overview() {
       <div>
         <p className="text-sm text-muted">{hello}</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight text-ink">Minhas Finanças</h1>
-        <p className="mt-1 text-sm text-moss">{period.label}</p>
+        <p className="mt-1 text-sm text-moss">O que você tem, o que entrou e o que saiu. {period.label}.</p>
       </div>
 
       <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1 scroll-thin">
@@ -206,14 +210,14 @@ export function Overview() {
           <button
             key={cat.id}
             type="button"
-            className="flex w-16 shrink-0 flex-col items-center gap-1.5"
+            className="flex w-[4.5rem] shrink-0 flex-col items-center gap-1.5 active:scale-[0.97]"
             onClick={() => {
               setFlow({ categoryId: cat.id, type: "expense", periodOnly: true, q: "", accountId: "all", sort: "recent" });
               setView("flow");
             }}
           >
             <span className="grid size-14 place-items-center rounded-full bg-paper text-leaf ring-1 ring-mist">
-              <Icon name={cat.icon} className="size-6" />
+              <Icon name={cat.icon} className="size-6" weight="fill" />
             </span>
             <span className="w-full truncate text-center text-xs text-moss">{cat.name}</span>
           </button>
@@ -221,24 +225,24 @@ export function Overview() {
       </div>
 
       <button type="button" className="overflow-hidden rounded-3xl bg-leaf px-5 py-5 text-left text-paper active:scale-[0.99]" onClick={() => setView("reports")}>
-        <p className="text-sm text-paper/75">Caixinha do mês</p>
+        <p className="text-sm text-paper/75">Neste mês</p>
         <p className="mt-1 text-2xl font-semibold tracking-tight leading-tight">
           {nowFlow.net >= 0 ? "Entrou mais do que saiu." : "Saiu mais do que entrou."}
         </p>
-        <p className="mt-2 text-sm text-paper/80">Resultado {brl(nowFlow.net)} · abrir o relatório</p>
+        <p className="mt-2 text-sm text-paper/80">Resultado {brl(nowFlow.net)}. Toque para ver o gráfico.</p>
       </button>
 
       {ledger.origin === "demo" && !ledger.hintHidden ? (
         <div className="flex items-start gap-3 rounded-2xl bg-surface px-4 py-3">
           <p className="flex-1 text-sm text-muted">Livro de exemplo para explorar. O que você lançar fica só neste aparelho.</p>
-          <button type="button" className="grid size-11 shrink-0 place-items-center text-muted" aria-label="Dispensar aviso" onClick={hideHint}>
-            ×
+          <button type="button" className="grid size-11 shrink-0 place-items-center text-muted active:scale-95" aria-label="Dispensar aviso" onClick={hideHint}>
+            <X className="size-4" weight="bold" />
           </button>
         </div>
       ) : null}
 
       <Card>
-        <Kicker>Patrimônio líquido</Kicker>
+        <Kicker>O que você tem</Kicker>
         <p className="mt-2">
           <Money value={wealth.net} display className="text-4xl leading-none sm:text-5xl" />
         </p>
@@ -265,29 +269,29 @@ export function Overview() {
 
       <PeriodBar />
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <Card className="p-3">
-          <p className="text-xs text-muted">Entradas</p>
-          <Money value={nowFlow.income} intent="income" className="mt-1 text-sm sm:text-base" />
+          <p className="text-xs text-muted">Entrou</p>
+          <Money value={nowFlow.income} intent="income" className="mt-1 text-base" />
           <div className="mt-1">
             <Delta pct={deltaPct(nowFlow.income, prevBounds ? prevFlow.income : null)} goodWhenUp />
           </div>
         </Card>
         <Card className="p-3">
-          <p className="text-xs text-muted">Saídas</p>
-          <Money value={nowFlow.expense} intent="expense" className="mt-1 text-sm sm:text-base" />
+          <p className="text-xs text-muted">Saiu</p>
+          <Money value={nowFlow.expense} intent="expense" className="mt-1 text-base" />
           <div className="mt-1">
             <Delta pct={deltaPct(nowFlow.expense, prevBounds ? prevFlow.expense : null)} goodWhenUp={false} />
           </div>
         </Card>
-        <Card className="p-3">
-          <p className="text-xs text-muted">Resultado</p>
-          <Money value={nowFlow.net} intent="result" className="mt-1 text-sm sm:text-base" />
-          <div className="mt-1">
-            <Delta pct={deltaPct(nowFlow.net, prevBounds ? prevFlow.net : null)} goodWhenUp />
-          </div>
-        </Card>
       </div>
+      <Card className="p-3">
+        <p className="text-xs text-muted">Sobrou no período</p>
+        <Money value={nowFlow.net} intent="result" className="mt-1 text-2xl" />
+        <div className="mt-1">
+          <Delta pct={deltaPct(nowFlow.net, prevBounds ? prevFlow.net : null)} goodWhenUp />
+        </div>
+      </Card>
 
       {(laterFlow.income > 0 || laterFlow.expense > 0) && (
         <p className="text-sm text-muted">
@@ -299,7 +303,7 @@ export function Overview() {
       )}
 
       <Card>
-        <Kicker>Movimento</Kicker>
+        <Kicker>No período</Kicker>
         <div className="mt-3">
           <FlowChart data={points} />
         </div>
@@ -308,7 +312,7 @@ export function Overview() {
 
       <section>
         <div className="mb-3 flex items-end justify-between">
-          <h2 className="font-serif text-xl">Classes de saída</h2>
+          <h2 className="font-serif text-xl">Para onde foi</h2>
           <button type="button" className="text-sm font-medium text-fg" onClick={() => setView("classes")}>
             Ver todas
           </button>
@@ -331,7 +335,7 @@ export function Overview() {
                   }}
                 >
                   <span className={cn("grid size-11 place-items-center rounded-full bg-mist text-leaf")}>
-                    <Icon name={cat.icon} className="size-4" />
+                    <Icon name={cat.icon} className="size-5" weight="fill" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm">{cat.name}</span>
@@ -349,7 +353,7 @@ export function Overview() {
 
       {soon.length > 0 ? (
         <section>
-          <h2 className="mb-3 font-serif text-xl">A caminho</h2>
+          <h2 className="mb-3 font-serif text-xl">Ainda vai cair</h2>
           <Card className="divide-y divide-line p-0">
             {soon.map((tx) => (
               <div key={tx.id} className="flex items-center gap-3 px-4 py-3">
@@ -369,7 +373,7 @@ export function Overview() {
       {budgetRows.length > 0 ? (
         <section>
           <div className="mb-3 flex items-end justify-between">
-            <h2 className="font-serif text-xl">Limites</h2>
+            <h2 className="font-serif text-xl">Teto do mês</h2>
             <button type="button" className="text-sm font-medium text-fg" onClick={() => setView("budgets")}>
               Abrir
             </button>
@@ -512,7 +516,7 @@ export function FlowView() {
         <MagnifyingGlass className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-faint" weight="bold" />
         <input
           className={cn(fieldClass, "pl-10")}
-          placeholder="Buscar nota ou classe"
+          placeholder="Buscar por nome"
           value={flow.q}
           onChange={(e) => setFlow({ q: e.target.value })}
         />
@@ -536,7 +540,7 @@ export function FlowView() {
       </div>
       <div className="scroll-thin -mx-4 flex gap-2 overflow-x-auto px-4">
         <Chip active={flow.categoryId === "all"} onClick={() => setFlow({ categoryId: "all" })}>
-          Todas as classes
+          Todas as categorias
         </Chip>
         {categories.map((cat) => (
           <Chip key={cat.id} active={flow.categoryId === cat.id} onClick={() => setFlow({ categoryId: cat.id, type: cat.kind })}>
@@ -692,11 +696,11 @@ export function BudgetsView() {
           <span className="text-sage">Realizado</span> e <span className="text-fg">previsto</span>
         </p>
         <Button className="h-10 px-3" onClick={() => ui.openBudget(cursor)}>
-          <Plus className="size-4" weight="bold" /> Limite
+          <Plus className="size-4" weight="bold" /> Teto
         </Button>
       </div>
       {rows.length === 0 ? (
-        <Empty title="Sem limites neste mês" body="Defina um teto por classe para acompanhar o ritmo dos gastos." action={<Button onClick={() => ui.openBudget(cursor)}>Criar limite</Button>} />
+        <Empty title="Sem teto neste mês" body="Diga quanto cada categoria pode gastar. A barra mostra o que já saiu e o que ainda está previsto." action={<Button onClick={() => ui.openBudget(cursor)}>Criar teto</Button>} />
       ) : (
         <div className="flex flex-col gap-3">
           {rows.map((row) => {
@@ -929,7 +933,7 @@ export function ReportsView() {
         </div>
       </Card>
       <Card>
-        <Kicker>Por classe</Kicker>
+        <Kicker>Por categoria</Kicker>
         <SharePie data={pie} />
         <ul className="mt-2 space-y-2">
           {pie.map((row) => {
@@ -994,7 +998,7 @@ export function ClassesView() {
         {rows.map(({ cat, total }) => (
           <Card key={cat.id} className="flex items-center gap-3">
             <span className={cn("grid size-10 place-items-center rounded-full", toneClass(cat.tone))}>
-              <Icon name={cat.icon} className="size-4" />
+              <Icon name={cat.icon} className="size-5" weight="fill" />
             </span>
             <button
               type="button"
@@ -1019,7 +1023,7 @@ export function ClassesView() {
               className="grid size-11 place-items-center text-clay"
               onClick={() => {
                 const ok = removeCategory(cat.id);
-                toast[ok ? "success" : "error"](ok ? "Classe removida" : "Classe em uso");
+                toast[ok ? "success" : "error"](ok ? "Categoria removida" : "Categoria em uso");
               }}
             >
               <Trash className="size-4" weight="bold" />
@@ -1149,10 +1153,10 @@ export function SettingsView() {
 export function MoreView() {
   const setView = useFinance((s) => s.setView);
   const items = [
-    { id: "accounts" as const, title: "Contas", detail: "Saldos, fatura e patrimônio", icon: Bank },
-    { id: "reports" as const, title: "Relatórios", detail: "Meses, classes e dias da semana", icon: ChartLine },
-    { id: "classes" as const, title: "Classes", detail: "Categorias de entrada e saída", icon: Tag },
-    { id: "settings" as const, title: "Ajustes", detail: "Exportar, importar, recomeçar", icon: Gear },
+    { id: "accounts" as const, title: "Contas", detail: "Banco, cartão, carteira e investimentos", icon: Bank },
+    { id: "reports" as const, title: "Relatórios", detail: "Gráficos do mês, das categorias e dos dias", icon: ChartLine },
+    { id: "classes" as const, title: "Categorias", detail: "Os nomes das entradas e das saídas", icon: Tag },
+    { id: "settings" as const, title: "Ajustes", detail: "Exportar, importar ou recomeçar", icon: Gear },
   ];
   return (
     <div className="rise overflow-hidden rounded-2xl bg-surface">

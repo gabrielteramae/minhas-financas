@@ -98,20 +98,20 @@ export function Panels({ panel, onClose }: { panel: Panel | null; onClose: () =>
                 ? "Editar conta"
                 : "Nova conta"
               : panel.category
-                ? "Editar classe"
-                : "Nova classe";
+                ? "Editar categoria"
+                : "Nova categoria";
   const description =
     panel.kind === "tx"
       ? "Entrada, saída ou movimento entre contas."
       : panel.kind === "budget"
-        ? "Quanto esta classe pode gastar no mês."
+        ? "Quanto esta categoria pode gastar no mês."
         : panel.kind === "goal"
           ? "Um alvo para separar dinheiro."
           : panel.kind === "contribute"
             ? "Marca o progresso. Pode mover o saldo junto."
             : panel.kind === "account"
               ? "O saldo inicial entra antes dos lançamentos."
-              : "Classes organizam entradas e saídas.";
+              : "Categorias organizam entradas e saídas.";
 
   return (
     <Sheet title={title} description={description} onClose={onClose}>
@@ -203,7 +203,7 @@ function TxForm({
       return;
     }
     if (!selectedCategory) {
-      setError("Crie uma classe antes de lançar.");
+      setError("Crie uma categoria antes de lançar.");
       return;
     }
     if (initial) {
@@ -299,7 +299,7 @@ function TxForm({
           </select>
         </Field>
       ) : (
-        <Field label="Classe">
+        <Field label="Categoria">
           <select className={fieldClass} value={selectedCategory} onChange={(e) => setCategoryId(e.target.value)}>
             {options.map((c) => (
               <option key={c.id} value={c.id}>
@@ -373,7 +373,7 @@ function BudgetForm({ month, categoryId, onDone }: { month: string; categoryId?:
         e.preventDefault();
         const value = parseMoney(amount);
         if (!value || !cat) {
-          setError("Escolha a classe e um limite maior que zero.");
+          setError("Escolha a categoria e um limite maior que zero.");
           return;
         }
         upsert(cat, month, value);
@@ -381,7 +381,7 @@ function BudgetForm({ month, categoryId, onDone }: { month: string; categoryId?:
         onDone();
       }}
     >
-      <Field label="Classe">
+      <Field label="Categoria">
         <select
           className={fieldClass}
           value={cat}
@@ -697,7 +697,7 @@ function CategoryForm({ category, onDone }: { category?: Category; onDone: () =>
       onSubmit={(e) => {
         e.preventDefault();
         if (!name.trim()) {
-          setError("Dê um nome para a classe.");
+          setError("Dê um nome para a categoria.");
           return;
         }
         save({
@@ -707,7 +707,7 @@ function CategoryForm({ category, onDone }: { category?: Category; onDone: () =>
           tone,
           icon,
         });
-        toast.success("Classe salva");
+        toast.success("Categoria salva");
         onDone();
       }}
     >
@@ -734,7 +734,7 @@ function CategoryForm({ category, onDone }: { category?: Category; onDone: () =>
       <ToneIconPick tone={tone} icon={icon} onTone={setTone} onIcon={setIcon} />
       {error ? <p className="text-sm text-clay">{error}</p> : null}
       <Button type="submit" className="w-full">
-        Salvar classe
+        Salvar categoria
       </Button>
     </form>
   );

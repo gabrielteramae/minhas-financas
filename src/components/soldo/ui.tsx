@@ -71,16 +71,33 @@ export function Field({
 export const fieldClass =
   "h-11 w-full rounded-xl border border-transparent bg-bg px-3 text-base text-fg outline-none focus-visible:bg-surface focus-visible:ring-2 focus-visible:ring-fg/15";
 
+let motionReduced = false;
+const motionListeners = new Set<() => void>();
+let motionWatching = false;
+
+function watchMotion() {
+  if (motionWatching || typeof window === "undefined") return;
+  motionWatching = true;
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  motionReduced = mq.matches;
+  mq.addEventListener("change", () => {
+    motionReduced = mq.matches;
+    motionListeners.forEach((listener) => listener());
+  });
+}
+
 export function usePrefersReducedMotion() {
-  const [reduce, setReduce] = useState(false);
+  const [, bump] = useState(0);
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => setReduce(mq.matches);
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
+    watchMotion();
+    const listener = () => bump((n) => n + 1);
+    motionListeners.add(listener);
+    if (motionReduced) listener();
+    return () => {
+      motionListeners.delete(listener);
+    };
   }, []);
-  return reduce;
+  return motionReduced;
 }
 
 export function Money({

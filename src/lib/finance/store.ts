@@ -348,8 +348,20 @@ export const useFinance = create<FinanceState>()(
 );
 
 export async function hydrateFinance() {
-  await useFinance.persist.rehydrate();
-  if (!useFinance.getState().seeded) {
+  try {
+    await useFinance.persist.rehydrate();
+  } catch {
+    /* storage unreadable */
+  }
+  const state = useFinance.getState();
+  const ok =
+    state.seeded &&
+    Array.isArray(state.transactions) &&
+    Array.isArray(state.accounts) &&
+    Array.isArray(state.categories) &&
+    Array.isArray(state.budgets) &&
+    Array.isArray(state.goals);
+  if (!ok) {
     const ledger = buildSeed(new Date());
     useFinance.setState({ ...ledger, origin: "demo", seeded: true, hintHidden: false });
   }
