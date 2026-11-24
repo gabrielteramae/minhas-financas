@@ -41,17 +41,17 @@ const PRIMARY: { id: View; label: string; icon: typeof House }[] = [
 function CaixaMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 140 140" className={className} aria-hidden>
-      <circle cx="70" cy="70" r="62" fill="#c4891f" />
-      <circle cx="70" cy="70" r="54" fill="#f2c14b" />
-      <circle cx="70" cy="70" r="43" fill="none" stroke="#f7f6f2" strokeWidth="3.5" />
+      <circle cx="70" cy="70" r="62" fill="#3a3a3a" />
+      <circle cx="70" cy="70" r="54" fill="#f5f5f5" />
+      <circle cx="70" cy="70" r="43" fill="none" stroke="#111111" strokeWidth="3.5" />
       <path
         d="M84 52c-8-8-28-6-28 8 0 16 32 8 32 24 0 12-18 16-30 8"
         fill="none"
-        stroke="#f7f6f2"
+        stroke="#111111"
         strokeWidth="7"
         strokeLinecap="round"
       />
-      <path d="M70 42v56" stroke="#f7f6f2" strokeWidth="7" strokeLinecap="round" />
+      <path d="M70 42v56" stroke="#111111" strokeWidth="7" strokeLinecap="round" />
     </svg>
   );
 }
@@ -59,13 +59,13 @@ function CaixaMark({ className }: { className?: string }) {
 function SceneMonth({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 360 220" className={className} preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <rect width="360" height="220" fill="#1a6fd4" />
-      <rect x="48" y="120" width="28" height="64" rx="8" fill="#f4f7f2" />
-      <rect x="92" y="88" width="28" height="96" rx="8" fill="#c8e6d4" />
-      <rect x="136" y="56" width="28" height="128" rx="8" fill="#f7f4ea" />
-      <rect x="180" y="96" width="28" height="88" rx="8" fill="#c8e6d4" />
-      <rect x="224" y="40" width="28" height="144" rx="8" fill="#f2c14b" />
-      <rect x="268" y="72" width="28" height="112" rx="8" fill="#f4f7f2" />
+      <rect width="360" height="220" fill="#000000" />
+      <rect x="48" y="120" width="28" height="64" rx="8" fill="#f5f5f5" />
+      <rect x="92" y="88" width="28" height="96" rx="8" fill="#30d158" />
+      <rect x="136" y="56" width="28" height="128" rx="8" fill="#f5f5f5" />
+      <rect x="180" y="96" width="28" height="88" rx="8" fill="#ff453a" />
+      <rect x="224" y="40" width="28" height="144" rx="8" fill="#30d158" />
+      <rect x="268" y="72" width="28" height="112" rx="8" fill="#f5f5f5" />
     </svg>
   );
 }
@@ -73,17 +73,17 @@ function SceneMonth({ className }: { className?: string }) {
 function SceneGoals({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 360 220" className={className} preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <rect width="360" height="220" fill="#1a6fd4" />
-      <circle cx="180" cy="118" r="72" fill="none" stroke="#0d3b73" strokeWidth="16" />
-      <circle cx="180" cy="118" r="72" fill="none" stroke="#f4f7f2" strokeWidth="16" strokeDasharray="300 160" strokeLinecap="round" transform="rotate(-90 180 118)" />
-      <circle cx="180" cy="118" r="36" fill="#f2c14b" />
+      <rect width="360" height="220" fill="#000000" />
+      <circle cx="180" cy="118" r="72" fill="none" stroke="#2c2c2c" strokeWidth="16" />
+      <circle cx="180" cy="118" r="72" fill="none" stroke="#30d158" strokeWidth="16" strokeDasharray="300 160" strokeLinecap="round" transform="rotate(-90 180 118)" />
+      <circle cx="180" cy="118" r="36" fill="#f5f5f5" />
     </svg>
   );
 }
 
 function Splash() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-leaf px-6 text-paper">
+    <main className="grid min-h-dvh place-items-center bg-foam px-6 text-ink">
       <div className="flex flex-col items-center text-center">
         <div className="splash-stage">
           <div className="splash-coin">
@@ -91,7 +91,7 @@ function Splash() {
           </div>
         </div>
         <p className="splash-title mt-8 text-4xl font-semibold tracking-tight">Minhas Finanças</p>
-        <p className="splash-sub mt-2 text-sm text-paper/80">Abrindo minha caixinha</p>
+        <p className="splash-sub mt-2 text-sm text-ink/60">Abrindo minha caixinha</p>
         <span className="splash-bar" aria-hidden>
           <span className="splash-bar-fill" />
         </span>
@@ -117,13 +117,13 @@ function Intro({ onDone }: { onDone: () => void }) {
   const last = i === slides.length - 1;
   const slide = slides[i]!;
   return (
-    <main className="mx-auto flex h-dvh w-full max-w-[430px] flex-col bg-leaf">
-      <div className="flex items-center px-5 pt-6 text-paper">
+    <main className="mx-auto flex h-dvh w-full max-w-[430px] flex-col bg-foam">
+      <div className="flex items-center px-5 pt-6 text-ink">
         <svg viewBox="0 0 32 32" className="h-8 w-8" aria-hidden>
-          <circle cx="16" cy="16" r="13" fill="#f2c14b" />
-          <circle cx="16" cy="16" r="9.5" fill="none" stroke="#f7f6f2" strokeWidth="1.6" />
-          <path d="M19.2 11.2c-2-1.8-6.2-1.2-6.2 2 0 3.4 6.6 1.6 6.6 5 0 2.6-3.8 3.4-6.2 1.8" fill="none" stroke="#f7f6f2" strokeWidth="1.8" strokeLinecap="round" />
-          <path d="M16 9.2v13.6" stroke="#f7f6f2" strokeWidth="1.8" strokeLinecap="round" />
+          <circle cx="16" cy="16" r="13" fill="#f5f5f5" />
+          <circle cx="16" cy="16" r="9.5" fill="none" stroke="#111111" strokeWidth="1.6" />
+          <path d="M19.2 11.2c-2-1.8-6.2-1.2-6.2 2 0 3.4 6.6 1.6 6.6 5 0 2.6-3.8 3.4-6.2 1.8" fill="none" stroke="#111111" strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M16 9.2v13.6" stroke="#111111" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
         <span className="ml-2 text-lg font-semibold tracking-tight">Minhas Finanças</span>
       </div>
@@ -249,7 +249,7 @@ function Shell() {
             </nav>
             <Panels panel={panel} onClose={() => setPanel(null)} />
             <Toaster
-              theme="light"
+              theme="dark"
               position="top-center"
               toastOptions={{
                 style: {

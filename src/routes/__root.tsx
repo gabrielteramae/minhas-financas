@@ -15,7 +15,7 @@ export const Route = createRootRoute({
         name: "description",
         content: "Patrimônio, gastos, ganhos e metas. A caixinha fica neste aparelho.",
       },
-      { name: "theme-color", content: "#1a6fd4" },
+      { name: "theme-color", content: "#000000" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: `${import.meta.env.BASE_URL}favicon.svg` },

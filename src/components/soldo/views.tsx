@@ -253,7 +253,7 @@ export function Overview() {
                     {cat?.name ?? TX_LABEL[tx.type]} · {shortDate(tx.date)}
                   </span>
                 </span>
-                <span className={cn("text-sm font-medium tabular-nums", tx.type === "expense" ? "text-ink" : "text-leaf")}>
+                <span className={cn("text-sm font-medium tabular-nums", tx.type === "expense" ? "text-clay" : "text-sage")}>
                   {mask ?? `${tx.type === "expense" ? "− " : "+ "}${brl(tx.amount)}`}
                 </span>
               </button>
