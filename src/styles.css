@@ -182,7 +182,7 @@
   width: 100%;
   transform-origin: left center;
   background: #f2c14b;
-  animation: splash-load 1.45s 180ms cubic-bezier(0.2, 0, 0, 1) both;
+  animation: splash-load 2.1s 200ms cubic-bezier(0.2, 0, 0, 1) both;
 }
 
 @keyframes splash-coin-spin {

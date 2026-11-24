@@ -327,7 +327,7 @@ export function SoldoApp() {
         seen = true;
       }
       setPhase(seen ? "app" : "intro");
-    }, reduce ? 200 : 900);
+    }, reduce ? 200 : 2400);
     void hydrateFinance().catch(() => {});
     return () => {
       live = false;
