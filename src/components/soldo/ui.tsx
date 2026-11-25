@@ -10,25 +10,56 @@ export function Kicker({ children }: { children: ReactNode }) {
   return <p className="text-xs font-medium text-muted">{children}</p>;
 }
 
+export function Spinner({ className }: { className?: string }) {
+  return (
+    <svg className={cn("size-4 shrink-0 animate-spin", className)} viewBox="0 0 24 24" aria-hidden>
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2.5" opacity="0.28" />
+      <path d="M21 12a9 9 0 0 0-9-9" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function Collapse({ open, children }: { open: boolean; children: ReactNode }) {
+  return (
+    <div className={cn("layout-collapse grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+      <div className="min-h-0 overflow-hidden" inert={open ? undefined : true}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export function Bone({ className }: { className?: string }) {
+  return <span className={cn("skeleton block rounded-full", className)} />;
+}
+
 export function Button({
   variant = "primary",
   className,
   type = "button",
+  busy = false,
+  children,
+  disabled,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "ghost" | "quiet" | "danger" }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "ghost" | "quiet" | "danger"; busy?: boolean }) {
   return (
     <button
       type={type}
+      disabled={disabled || busy}
+      aria-busy={busy || undefined}
       className={cn(
-        "inline-flex h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium transition-transform duration-150 ease-out active:not-disabled:scale-[0.96] disabled:opacity-40",
+        "hit inline-flex h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium disabled:opacity-40",
         variant === "primary" && "bg-leaf text-paper",
-        variant === "ghost" && "bg-surface text-ink ring-1 ring-mist",
+        variant === "ghost" && "bg-surface text-ink ring-1 ring-inset ring-mist",
         variant === "quiet" && "bg-transparent text-muted",
         variant === "danger" && "bg-clay/15 text-clay",
         className,
       )}
       {...props}
-    />
+    >
+      {busy ? <Spinner /> : null}
+      {children}
+    </button>
   );
 }
 
@@ -41,7 +72,7 @@ export function Chip({
     <button
       type="button"
       className={cn(
-        "h-10 shrink-0 rounded-full px-3 text-sm transition-transform duration-150 active:scale-[0.96]",
+        "hit h-10 shrink-0 rounded-full px-3 text-sm",
         active ? "bg-leaf text-paper" : "bg-surface text-moss ring-1 ring-mist",
         className,
       )}
@@ -192,7 +223,15 @@ export function Delta({
 
 export function Empty({ title, body, action }: { title: string; body: string; action?: ReactNode }) {
   return (
-    <div className="rounded-3xl bg-surface px-4 py-8 text-center ring-1 ring-mist">
+    <div className="rounded-3xl bg-surface px-4 py-8 text-center ring-1 ring-inset ring-mist">
+      <div className="floaty mx-auto mb-3 grid size-14 place-items-center">
+        <svg viewBox="0 0 64 64" className="size-14" aria-hidden>
+          <circle cx="32" cy="32" r="28" fill="#f0b429" />
+          <circle cx="32" cy="32" r="22" fill="#ffe56a" />
+          <path d="M38 22c-4-4-14-3-14 4 0 8 16 4 16 12 0 6-9 8-15 4" fill="none" stroke="#8a5a00" strokeWidth="3.2" strokeLinecap="round" />
+          <path d="M32 16v32" stroke="#8a5a00" strokeWidth="3.2" strokeLinecap="round" />
+        </svg>
+      </div>
       <p className="font-serif text-xl text-fg">{title}</p>
       <p className="mx-auto mt-2 max-w-sm text-sm text-muted">{body}</p>
       {action ? <div className="mt-4">{action}</div> : null}

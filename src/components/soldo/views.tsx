@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type RefObject } from "react";
 import {
   ArrowsLeftRight,
   Bank,
@@ -48,7 +48,33 @@ import { cn } from "@/lib/cn";
 import { FlowChart, SharePie, WealthChart } from "./charts";
 import { useClock, useUI } from "./context";
 import { Chevron, Icon, toneClass, toneStroke } from "./icons";
-import { Button, Card, Chip, Empty, fieldClass, Kicker, Money } from "./ui";
+import { Button, Card, Chip, Collapse, Empty, fieldClass, Kicker, Money } from "./ui";
+
+function useFlip(root: RefObject<HTMLElement | null>, token: string) {
+  const last = useRef(new Map<string, number>());
+  useLayoutEffect(() => {
+    const node = root.current;
+    if (!node) return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+    const next = new Map<string, number>();
+    for (const item of node.querySelectorAll<HTMLElement>("[data-flip]")) {
+      const id = item.dataset.flip;
+      if (!id) continue;
+      const top = item.getBoundingClientRect().top;
+      next.set(id, top);
+      const prev = last.current.get(id);
+      if (!reduce && prev != null && Math.abs(prev - top) > 1 && Math.abs(prev - top) < 72) {
+        const dy = prev - top;
+        item.getAnimations().forEach((anim) => anim.cancel());
+        item.animate([{ transform: `translateY(${dy}px)` }, { transform: "translateY(0)" }], {
+          duration: 220,
+          easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+        });
+      }
+    }
+    last.current = next;
+  }, [root, token]);
+}
 
 export function usePeriod() {
   const mode = useFinance((s) => s.rangeMode);
@@ -101,7 +127,7 @@ export function PeriodBar({ compact = false }: { compact?: boolean }) {
         </button>
       </div>
       {compact ? null : (
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-2 p-1">
         {modes.map((item) => (
           <Chip
             key={item.id}
@@ -126,11 +152,13 @@ function Meter({ realized, scheduled, limit }: { realized: number; scheduled: nu
   const rw = Math.min(100, (realized / base) * 100);
   const sw = Math.min(100 - rw, (scheduled / base) * 100);
   return (
-    <div className="h-2 overflow-hidden rounded-full bg-bg" role="progressbar" aria-valuemin={0} aria-valuemax={limit || realized} aria-valuenow={Math.round(realized)}>
-      <div className="meter-fill h-full" style={{ width: `${Math.min(100, rw + sw)}%` }}>
-        <div className="flex h-full">
-          <div className={cn("h-full", over ? "bg-clay" : "bg-sage")} style={{ width: rw + sw > 0 ? `${(rw / (rw + sw)) * 100}%` : "0%" }} />
-          <div className="h-full bg-gold/45" style={{ width: rw + sw > 0 ? `${(sw / (rw + sw)) * 100}%` : "0%" }} />
+    <div className={cn("h-2 rounded-full bg-bg", over && "nudge")} role="progressbar" aria-valuemin={0} aria-valuemax={limit || realized} aria-valuenow={Math.round(realized)}>
+      <div className="h-full overflow-hidden rounded-full">
+        <div className="meter-fill h-full" style={{ width: `${Math.min(100, rw + sw)}%` }}>
+          <div className="flex h-full">
+            <div className={cn("h-full", over ? "bg-clay" : "bg-sage")} style={{ width: rw + sw > 0 ? `${(rw / (rw + sw)) * 100}%` : "0%" }} />
+            <div className="h-full bg-gold/45" style={{ width: rw + sw > 0 ? `${(sw / (rw + sw)) * 100}%` : "0%" }} />
+          </div>
         </div>
       </div>
     </div>
@@ -198,21 +226,23 @@ export function Overview() {
         </div>
       ) : null}
 
-      <div className="flex min-h-40 flex-col justify-between rounded-3xl bg-paper p-5 ring-1 ring-mist">
-        <span className="flex w-full items-start justify-between">
+      <div className="flex min-h-40 flex-col justify-between rounded-3xl bg-paper p-5 ring-1 ring-inset ring-mist">
+        <span className="flex w-full items-center justify-between">
           <button
             type="button"
             aria-label={hidden ? "Mostrar saldo" : "Ocultar saldo"}
-            className="grid size-11 place-items-center rounded-full text-leaf"
+            className="hit grid size-11 place-items-center rounded-full text-leaf"
             onClick={() => setHidden((v) => !v)}
           >
+            <span key={hidden ? "off" : "on"} className="pop-in grid place-items-center">
             {hidden ? <EyeSlash className="size-5" weight="bold" /> : <Eye className="size-5" weight="bold" />}
+            </span>
           </button>
           <button type="button" className="text-sm font-medium text-leaf" onClick={() => setView("accounts")}>
             Contas
           </button>
         </span>
-        <span>
+        <span key={hidden ? "off" : "on"} className="pop-in">
           <span className="block text-sm text-moss">Saldo</span>
           {mask ? (
             <span className="mt-1 block text-4xl font-semibold tracking-tight text-ink">{mask}</span>
@@ -241,12 +271,12 @@ export function Overview() {
             Extrato
           </button>
         </div>
-        <div className="rows flex flex-col">
+        <div className="flex flex-col">
           {recent.map((tx) => {
             const cat = ledger.categories.find((c) => c.id === tx.categoryId);
             return (
               <button key={tx.id} type="button" className="flex items-center gap-3 py-3 text-left" onClick={() => setView("flow")}>
-                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-paper text-leaf ring-1 ring-mist">
+                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-paper leading-none text-leaf ring-1 ring-inset ring-mist">
                   <Icon name={cat?.icon ?? "spark"} className="size-5" weight="fill" />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -265,7 +295,7 @@ export function Overview() {
       </section>
 
       {soon[0] ? (
-        <button type="button" className="flex items-center justify-between gap-3 rounded-3xl bg-paper px-4 py-4 text-left ring-1 ring-mist" onClick={() => setView("flow")}>
+        <button type="button" className="flex items-center justify-between gap-3 rounded-3xl bg-paper px-4 py-4 text-left ring-1 ring-inset ring-mist" onClick={() => setView("flow")}>
           <span>
             <span className="block text-sm text-moss">Próximo</span>
             <span className="mt-0.5 block text-sm font-medium text-ink">{soon[0].note || TX_LABEL[soon[0].type]}</span>
@@ -299,12 +329,14 @@ function Shortcut({
     <button
       type="button"
       className={cn(
-        "flex flex-col justify-between rounded-3xl bg-paper p-4 text-left ring-1 ring-mist active:scale-[0.98]",
+        "hit flex flex-col items-start justify-between rounded-3xl bg-paper p-4 text-left ring-1 ring-inset ring-mist",
         compact ? "min-h-28" : "min-h-36",
       )}
       onClick={onClick}
     >
-      <IconGlyph className="size-6 text-leaf" weight="bold" />
+      <span className="boop grid size-7 place-items-center leading-none">
+        <IconGlyph className="size-6 text-leaf" weight="bold" />
+      </span>
       <span className="text-[15px] font-medium leading-tight text-ink">{label}</span>
     </button>
   );
@@ -313,14 +345,14 @@ function Shortcut({
 function TxMark({ tx, categories }: { tx: Transaction; categories: Category[] }) {
   if (tx.type === "transfer") {
     return (
-      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-mist text-moss">
+      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-mist leading-none text-moss">
         <ArrowsLeftRight className="size-4" weight="fill" />
       </span>
     );
   }
   const cat = categories.find((c) => c.id === tx.categoryId);
   return (
-    <span className="grid size-11 shrink-0 place-items-center rounded-full bg-mist text-leaf">
+    <span className="grid size-11 shrink-0 place-items-center rounded-full bg-mist leading-none text-leaf">
       <Icon name={cat?.icon ?? "spark"} className="size-4" />
     </span>
   );
@@ -340,6 +372,7 @@ export function FlowView() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [moreFilters, setMoreFilters] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const filtered = txs.filter((t) => {
     if (flow.periodOnly && (t.date < period.start || t.date > period.end)) return false;
@@ -353,6 +386,8 @@ export function FlowView() {
     }
     return true;
   });
+  const flipToken = `${flow.sort}:${flow.type}:${flow.categoryId}:${flow.accountId}:${flow.periodOnly}`;
+  useFlip(listRef, flipToken);
   const amountSorted = filtered.slice().sort((a, b) => b.amount - a.amount || b.date.localeCompare(a.date));
   const upcomingItems = filtered
     .filter((t) => t.date > todayISO)
@@ -388,7 +423,7 @@ export function FlowView() {
           onChange={(e) => setFlow({ q: e.target.value })}
         />
       </div>
-      <div className="scroll-thin -mx-4 flex gap-2 overflow-x-auto px-4">
+      <div className="flex flex-wrap gap-2 p-1">
         {(
           [
             ["all", "Tudo"],
@@ -410,9 +445,9 @@ export function FlowView() {
           {categories.find((c) => c.id === flow.categoryId)?.name ?? "Categoria"} · tirar filtro.
         </button>
       ) : null}
-      {moreFilters ? (
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap gap-2">
+      <Collapse open={moreFilters}>
+        <div className="flex flex-col gap-3 pt-1">
+          <div className="flex flex-wrap gap-2 p-1">
             <Chip active={!flow.periodOnly} onClick={() => setFlow({ periodOnly: !flow.periodOnly })}>
               {flow.periodOnly ? "Só este período" : "Histórico todo"}
             </Chip>
@@ -420,7 +455,7 @@ export function FlowView() {
               {flow.sort === "amount" ? "Maiores" : "Mais recentes"}
             </Chip>
           </div>
-          <div className="scroll-thin -mx-4 flex gap-2 overflow-x-auto px-4">
+          <div className="flex flex-wrap gap-2 p-1">
             <Chip active={flow.categoryId === "all"} onClick={() => setFlow({ categoryId: "all" })}>
               Todas
             </Chip>
@@ -439,26 +474,26 @@ export function FlowView() {
             ))}
           </select>
         </div>
-      ) : null}
+      </Collapse>
 
       {filtered.length === 0 ? (
         <Empty title="Nada por aqui" body="Troque o filtro ou lance um movimento novo." action={<Button onClick={() => ui.openTx()}>Novo lançamento</Button>} />
       ) : (
-        <div className="flex flex-col gap-4">
+        <div ref={listRef} className="flex flex-col gap-4">
           {groups.map((group) => (
             <section key={group.key}>
               <h2 className="mb-2 text-xs font-medium tracking-widest text-muted uppercase">
                 {group.key === "maiores" ? "Maiores valores" : dayHeading(group.key, todayISO)}
               </h2>
-              <Card className="rows divide-y divide-line p-0">
+              <Card className="divide-y divide-line p-0">
                 {group.items.map((tx) => {
                   const open = openId === tx.id;
                   const cat = categories.find((c) => c.id === tx.categoryId);
                   const from = accounts.find((a) => a.id === tx.accountId)?.name ?? "Conta";
                   const to = accounts.find((a) => a.id === tx.toAccountId)?.name;
                   return (
-                    <div key={tx.id}>
-                      <button type="button" className="flex w-full items-center gap-3 px-4 py-3 text-left" onClick={() => setOpenId(open ? null : tx.id)}>
+                    <div key={tx.id} data-flip={tx.id}>
+                      <button type="button" className="hit flex w-full items-center gap-3 px-4 py-3 text-left active:bg-mist" onClick={() => setOpenId(open ? null : tx.id)}>
                         <TxMark tx={tx} categories={categories} />
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center gap-2">
@@ -477,8 +512,7 @@ export function FlowView() {
                           className="text-sm"
                         />
                       </button>
-                      <div className={cn("grid transition-[grid-template-rows] duration-200", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
-                        <div className="overflow-hidden" inert={open ? undefined : true}>
+                      <Collapse open={open}>
                           <div className="flex flex-wrap gap-2 px-4 pb-3">
                             <Button variant="ghost" className="h-10 px-3" onClick={() => ui.editTx(tx)}>
                               <PencilSimple className="size-4" weight="bold" /> Editar
@@ -509,7 +543,7 @@ export function FlowView() {
                             {confirmId === tx.id ? (
                               <Button
                                 variant="danger"
-                                className="h-10 px-3"
+                                className="ack h-10 px-3"
                                 onClick={() => {
                                   removeTx(tx.id);
                                   setConfirmId(null);
@@ -524,8 +558,7 @@ export function FlowView() {
                               </Button>
                             )}
                           </div>
-                        </div>
-                      </div>
+                      </Collapse>
                     </div>
                   );
                 })}
@@ -641,11 +674,11 @@ export function GoalsView() {
           const late = goal.deadline && goal.deadline < todayISO && saved < goal.target;
           const open = openId === goal.id;
           return (
-            <Card key={goal.id}>
+            <Card key={goal.id} className={late ? "nudge" : undefined}>
               <div className="flex items-center gap-4">
                 <div className="ring-pop grid size-16 place-items-center rounded-full" style={{ background: `conic-gradient(${toneStroke(goal.tone)} ${Math.min(100, pct)}%, var(--color-line) 0)` }}>
-                  <div className="grid size-12 place-items-center rounded-full bg-surface">
-                    <Icon name={goal.icon} className="size-4" />
+                  <div className="grid size-12 place-items-center rounded-full bg-surface leading-none">
+                    <Icon name={goal.icon} className="size-5" />
                   </div>
                 </div>
                 <div className="min-w-0 flex-1">
@@ -670,7 +703,7 @@ export function GoalsView() {
                   {open ? "Fechar" : "Aportes"}
                 </Button>
               </div>
-              {open ? (
+              <Collapse open={open}>
                 <ul className="mt-3 divide-y divide-line">
                   {goal.contributions.length === 0 ? <li className="py-2 text-sm text-muted">Nenhum aporte ainda.</li> : null}
                   {goal.contributions
@@ -687,7 +720,7 @@ export function GoalsView() {
                       </li>
                     ))}
                 </ul>
-              ) : null}
+              </Collapse>
             </Card>
           );
         })
@@ -790,7 +823,7 @@ export function ReportsView() {
 
   return (
     <div className="rise flex flex-col gap-4">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2 p-1">
         {(
           [
             ["mes", "Mês"],
@@ -881,7 +914,7 @@ export function ClassesView() {
             >
               <span className="block truncate text-sm">{cat.name}</span>
               <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-bg">
-                <span className={cn("block h-full rounded-full", kind === "income" ? "bg-sage" : "bg-clay")} style={{ width: `${(total / max) * 100}%` }} />
+                <span className={cn("block h-full rounded-full transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]", kind === "income" ? "bg-sage" : "bg-clay")} style={{ width: `${(total / max) * 100}%` }} />
               </span>
             </button>
             <span className="text-sm tabular-nums">{brl(total, { cents: false })}</span>
@@ -926,8 +959,12 @@ export function SettingsView() {
   const { today } = useClock();
   const fileRef = useRef<HTMLInputElement>(null);
   const [arm, setArm] = useState<"clear" | "demo" | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [done, setDone] = useState<"export" | "import" | null>(null);
 
   const download = () => {
+    setExporting(true);
     const s = useFinance.getState();
     const payload = {
       v: 1,
@@ -945,6 +982,9 @@ export function SettingsView() {
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Arquivo gerado");
+    setExporting(false);
+    setDone("export");
+    window.setTimeout(() => setDone(null), 700);
   };
 
   return (
@@ -955,9 +995,11 @@ export function SettingsView() {
           Minhas Finanças não envia os seus números para nenhum lugar. Exporte para guardar uma cópia ou levar para outro navegador.
         </p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Button onClick={download}>Exportar</Button>
-          <Button variant="ghost" onClick={() => fileRef.current?.click()}>
-            Importar
+          <Button busy={exporting} onClick={download}>
+            {done === "export" ? "Pronto" : "Exportar"}
+          </Button>
+          <Button variant="ghost" busy={importing} onClick={() => fileRef.current?.click()}>
+            {done === "import" ? "Pronto" : "Importar"}
           </Button>
           <input
             ref={fileRef}
@@ -968,13 +1010,19 @@ export function SettingsView() {
               const file = e.target.files?.[0];
               e.target.value = "";
               if (!file) return;
+              setImporting(true);
               try {
                 const data = JSON.parse(await file.text()) as unknown;
                 const ok = importLedger(data);
-                if (ok) toast.success("Dados importados");
-                else toast.error("Arquivo não reconhecido");
+                if (ok) {
+                  toast.success("Dados importados");
+                  setDone("import");
+                  window.setTimeout(() => setDone(null), 700);
+                } else toast.error("Arquivo não reconhecido");
               } catch {
                 toast.error("Não foi possível ler o arquivo");
+              } finally {
+                setImporting(false);
               }
             }}
           />
@@ -1030,7 +1078,7 @@ export function MoreView() {
     { id: "settings" as const, title: "Ajustes", detail: "Exportar, importar ou recomeçar", icon: Gear },
   ];
   return (
-    <div className="rise overflow-hidden rounded-2xl bg-surface">
+    <div className="rise overflow-hidden rounded-2xl bg-surface ring-1 ring-inset ring-mist">
       {items.map((item, index) => (
         <button
           key={item.id}
@@ -1038,7 +1086,7 @@ export function MoreView() {
           className={cn("flex w-full items-center gap-3 px-4 py-3.5 text-left", index > 0 && "border-t border-line")}
           onClick={() => setView(item.id)}
         >
-          <span className="grid size-9 place-items-center rounded-full bg-raised text-fg">
+          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-raised leading-none text-fg">
             <item.icon className="size-5" weight="fill" />
           </span>
           <span className="min-w-0 flex-1">

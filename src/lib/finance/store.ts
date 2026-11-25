@@ -27,6 +27,7 @@ type Persisted = Ledger & {
 export type FinanceState = Persisted & {
   view: View;
   flow: FlowQuery;
+  ready: boolean;
   setView: (view: View) => void;
   setRangeMode: (mode: RangeMode) => void;
   setMonthOffset: (offset: number) => void;
@@ -192,6 +193,7 @@ export const useFinance = create<FinanceState>()(
       ...blank(),
       view: "home",
       flow: blankFlow(),
+      ready: false,
       setView: (view) => set({ view }),
       setRangeMode: (rangeMode) => set({ rangeMode, monthOffset: rangeMode === "month" ? get().monthOffset : 0 }),
       setMonthOffset: (monthOffset) => set({ monthOffset }),
@@ -365,4 +367,5 @@ export async function hydrateFinance() {
     const ledger = buildSeed(new Date());
     useFinance.setState({ ...ledger, origin: "demo", seeded: true, hintHidden: false });
   }
+  useFinance.setState({ ready: true });
 }

@@ -436,7 +436,7 @@ function ToneIconPick({
 }) {
   return (
     <>
-      <div className="flex gap-2">
+      <div className="flex gap-2 px-1 py-1">
         {TONES.map((item) => (
           <button
             key={item}
@@ -448,7 +448,7 @@ function ToneIconPick({
           />
         ))}
       </div>
-      <div className="grid grid-cols-6 gap-2">
+      <div className="grid grid-cols-6 gap-2 py-1">
         {ICON_NAMES.map((name) => (
           <button
             key={name}

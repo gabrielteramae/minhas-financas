@@ -16,6 +16,7 @@ import type { View, Transaction, Goal, Account, Category } from "@/lib/finance/t
 import { cn } from "@/lib/cn";
 import { ClockProvider, UIProvider, type TxPreset } from "./context";
 import { Panels, type Panel } from "./panels";
+import { Bone } from "./ui";
 import {
   AccountsView,
   BudgetsView,
@@ -95,15 +96,15 @@ function SceneGoals({ className }: { className?: string }) {
 
 function Splash() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-foam px-6 text-ink">
-      <div className="flex flex-col items-center text-center">
+    <main className="flex min-h-dvh w-full items-center justify-center bg-foam px-6 text-ink">
+      <div className="flex w-full max-w-[18rem] -translate-y-6 flex-col items-center text-center">
         <div className="splash-stage">
           <div className="splash-coin">
-            <CaixaMark className="h-32 w-32" />
+            <CaixaMark className="block h-32 w-32" />
           </div>
         </div>
-        <p className="splash-title mt-8 text-4xl font-semibold tracking-tight">Minhas Finanças</p>
-        <p className="splash-sub mt-2 text-sm text-ink/60">Abrindo minha caixinha.</p>
+        <p className="splash-title mt-8 w-full text-center text-4xl font-semibold leading-none tracking-tight">Minhas Finanças</p>
+        <p className="splash-sub mt-3 w-full text-center text-sm leading-none text-ink/60">Abrindo minha caixinha.</p>
         <span className="splash-bar" aria-hidden>
           <span className="splash-bar-fill" />
         </span>
@@ -169,6 +170,52 @@ const TITLES: Partial<Record<View, string>> = {
   more: "Mais",
 };
 
+function ScreenSkeleton({ view }: { view: View }) {
+  if (view === "home") {
+    return (
+      <div className="flex flex-col gap-4" aria-hidden>
+        <div className="flex items-center gap-3">
+          <Bone className="size-11 rounded-full" />
+          <div className="flex flex-1 flex-col gap-2">
+            <Bone className="h-4 w-32" />
+            <Bone className="h-3 w-20" />
+          </div>
+        </div>
+        <Bone className="h-40 w-full rounded-3xl" />
+        <div className="grid grid-cols-2 gap-3">
+          <Bone className="h-36 rounded-3xl" />
+          <Bone className="h-36 rounded-3xl" />
+          <Bone className="h-36 rounded-3xl" />
+          <Bone className="h-36 rounded-3xl" />
+        </div>
+        <Bone className="h-4 w-24" />
+        <Bone className="h-14 w-full" />
+        <Bone className="h-14 w-full" />
+        <Bone className="h-14 w-full" />
+      </div>
+    );
+  }
+  if (view === "budgets" || view === "goals" || view === "accounts" || view === "reports") {
+    return (
+      <div className="flex flex-col gap-3" aria-hidden>
+        <Bone className="h-10 w-40" />
+        <Bone className="h-28 w-full rounded-3xl" />
+        <Bone className="h-28 w-full rounded-3xl" />
+        <Bone className="h-28 w-full rounded-3xl" />
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-3" aria-hidden>
+      <Bone className="h-11 w-full" />
+      <Bone className="h-16 w-full" />
+      <Bone className="h-16 w-full" />
+      <Bone className="h-16 w-full" />
+      <Bone className="h-16 w-full" />
+    </div>
+  );
+}
+
 function Shell() {
   const view = useFinance((s) => s.view);
   const setView = useFinance((s) => s.setView);
@@ -189,6 +236,14 @@ function Shell() {
   );
 
   const moreActive = view === "more" || view === "accounts" || view === "reports" || view === "classes" || view === "settings";
+  const tab = moreActive ? 4 : Math.max(0, PRIMARY.findIndex((item) => item.id === view));
+  const ready = useFinance((s) => s.ready);
+  const [boot, setBoot] = useState(true);
+  useEffect(() => {
+    const t = window.setTimeout(() => setBoot(false), 240);
+    return () => window.clearTimeout(t);
+  }, []);
+  const loading = boot || !ready;
 
   return (
     <ClockProvider value={clock}>
@@ -196,14 +251,14 @@ function Shell() {
         <div className="min-h-dvh bg-deep md:py-4">
           <div className="relative mx-auto flex h-dvh w-full max-w-[430px] flex-col overflow-hidden bg-foam md:h-[min(920px,100dvh)] md:rounded-[2rem]">
             <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain px-4 pt-[max(1.25rem,env(safe-area-inset-top))] pb-[calc(9.75rem+env(safe-area-inset-bottom))]">
-              <div key={view} className="screen-in">
+              <div key={view}>
               {view !== "home" && TITLES[view] ? (
                 <div className="mb-4">
                   <div className="flex items-center gap-2">
                     {view === "accounts" || view === "reports" || view === "classes" || view === "settings" ? (
                       <button
                         type="button"
-                        className="grid size-11 place-items-center rounded-full bg-paper text-ink ring-1 ring-mist active:scale-[0.96]"
+                        className="grid size-11 place-items-center rounded-full bg-paper text-ink ring-1 ring-inset ring-mist active:scale-[0.96]"
                         aria-label="Voltar"
                         onClick={() => setView("more")}
                       >
@@ -214,6 +269,10 @@ function Shell() {
                   </div>
                 </div>
               ) : null}
+              {loading ? (
+                <ScreenSkeleton view={view} />
+              ) : (
+                <div key="ready">
               {view === "home" ? <Overview /> : null}
               {view === "flow" ? <FlowView /> : null}
               {view === "budgets" ? <BudgetsView /> : null}
@@ -223,19 +282,23 @@ function Shell() {
               {view === "classes" ? <ClassesView /> : null}
               {view === "settings" ? <SettingsView /> : null}
               {view === "more" ? <MoreView /> : null}
+                </div>
+              )}
               </div>
             </div>
             <button
               type="button"
               aria-label="Novo lançamento"
-              className="fab-in absolute right-4 z-30 grid size-14 place-items-center rounded-full bg-leaf text-paper transition-transform active:scale-[0.96]"
+              className="fab-in group absolute right-4 z-30 grid size-14 place-items-center rounded-full bg-leaf text-paper transition-transform active:scale-90"
               style={{ bottom: "calc(5.85rem + env(safe-area-inset-bottom))" }}
               onClick={() => ui.openTx()}
             >
-              <Plus className="size-6" weight="bold" />
+              <Plus className="size-6 transition-transform duration-200 group-active:rotate-90" weight="bold" />
             </button>
             <nav className="absolute inset-x-3 z-30" style={{ bottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
-              <div className="grid h-[4.5rem] grid-cols-5 rounded-[1.75rem] bg-paper ring-1 ring-mist">
+              <div className="rounded-[1.75rem] bg-paper ring-1 ring-inset ring-mist">
+              <div className="relative grid h-[4.5rem] grid-cols-5 overflow-hidden rounded-[1.75rem]">
+                <span className="tab-thumb" style={{ transform: `translateX(${tab * 100}%)` }} aria-hidden />
                 {PRIMARY.map((item) => {
                   const active = item.id === "more" ? moreActive : view === item.id;
                   const weight: IconWeight = active ? "fill" : "bold";
@@ -244,16 +307,17 @@ function Shell() {
                       key={item.id}
                       type="button"
                       aria-label={item.label}
-                      className="grid place-items-center px-1"
+                      className="relative z-10 grid place-items-center px-1"
                       onClick={() => setView(item.id)}
                     >
-                      <span className={cn("flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl transition-colors duration-200", active && "bg-mist")}>
-                        <item.icon className={cn("size-5 transition-transform duration-200", active ? "scale-110 text-leaf" : "text-moss")} weight={weight} />
+                      <span className="relative flex h-14 w-full flex-col items-center justify-center gap-0.5 rounded-2xl">
+                        <item.icon className={cn("size-5 shrink-0", active ? "boop text-leaf" : "text-moss")} weight={weight} />
                         <span className={cn("text-[10px] font-medium leading-none", active ? "text-leaf" : "text-moss")}>{item.label}</span>
                       </span>
                     </button>
                   );
                 })}
+              </div>
               </div>
             </nav>
             <Panels panel={panel} onClose={() => setPanel(null)} />
